@@ -24,4 +24,3 @@ exports.userDeleted = functions.auth.user().onDelete((user) => {
   // Remove the user from the "users" collection in Firestore
   return db.collection('users').doc(user.uid).delete();
 });
-
