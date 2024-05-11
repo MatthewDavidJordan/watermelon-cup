@@ -1,28 +1,64 @@
-import React from 'react'
+import React, { useState, useEffect } from "react"
+import { Container, Card, Button, Alert } from "react-bootstrap"
+import { useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
+import { Navbar } from '../components/Navbar'
+import { auth } from "../firebase/firebase"
 import { doSignOut } from "../firebase/auth";
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from "../contexts/authContexts/firebaseAuth";
 
 
-export function Settings() { 
+export const Settings = () => {
+  const [error, setError] = useState("");
+  const { currentUser } = useAuth();
 
   const navigate = useNavigate();
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    console.log("User is logging out");
+  async function handleLogout() {
+    setError("");
+
     try {
-      console.log("Signing out user");
       await doSignOut();
-      console.log("User signed out successfully");
-      navigate("/");
-    } catch (error) {
-      console.log("Error signing out user");
+    } catch {
+      setError("Failed to log out");
     }
-}
+  }
 
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        // User is signed in, navigate to the homepage
+        navigate("/");
+      }
+    });
 
+    // Clean up the observer on component unmount
+    return () => unsubscribe();
+  }, [navigate]);
 
   return (
-    <button onClick={onSubmit}>Sign Out</button>
+    <Container
+      className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
+      style={{ minHeight: "100vh", maxWidth: "100%", padding: 0}}
+    >
+      <Navbar/>
+      <div className="w-100" style={{ maxWidth: "400px" }}>
+        <Card>
+          <Card.Body>
+            <h2 className="text-center mb-4">Profile</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            <strong>Email:</strong> {currentUser.email}
+            <Link to="/update-profile" className="btn btn-primary w-100 mt-3">
+              Update Profile
+            </Link>
+          </Card.Body>
+        </Card>
+        <div className="w-100 text-center mt-2">
+          <Button variant="link" onClick={handleLogout}>
+            Log Out
+          </Button>
+        </div>
+      </div>
+    </Container>
   )
 }

@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { React } from 'react';
-import './Navbar.css';
+import '../styles/Navbar.css';
 
 import { useAuth } from '../contexts/authContexts/firebaseAuth';
 
@@ -29,7 +29,7 @@ export const Navbar = () => {
                     <Link to="/matches">Matches</Link>
                 </li>
                 <li className='nav-item'>
-                    <Link to="/settings"><button className='primary-button'> Log Out </button></Link>
+                    <Link to="/settings"><button className='primary-button'>Settings</button></Link>
                 </li>
             </ul>
             :
@@ -41,7 +41,7 @@ export const Navbar = () => {
                     <Link to="/login"><button className='primary-button'>Log In</button></Link>
                 </li>
                 <li className='nav-item'>
-                    <Link to="/register"><button className='primary-button'>Sign Up</button></Link>
+                    <Link to="/signup"><button className='primary-button'>Sign Up</button></Link>
                 </li>
             </ul>
             }

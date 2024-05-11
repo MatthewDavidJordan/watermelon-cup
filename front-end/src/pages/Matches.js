@@ -1,3 +1,3 @@
 export function Matches () {
-    return <h1>Matches</h1> 
+    return <h1>Matches coming soon...</h1> 
 }
