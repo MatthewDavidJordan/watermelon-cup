@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Register.css";
+import "../styles/Register.css";
 import { doCreateUserWithEmailAndPassword, doSignInWithGoogle } from "../firebase/auth";
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
 import GoogleIcon from '@mui/icons-material/Google';

@@ -1,93 +1,110 @@
-import React, { useState, useEffect } from "react";
-import "./Login.css";
+import React, { useRef, useState, useEffect } from "react"
+import { Container, Form, Button, Card, Alert } from "react-bootstrap"
 import { doSignInWithEmailAndPassword, doSignInWithGoogle } from "../firebase/auth";
-import { auth } from "../firebase/firebase";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"
 
+import { auth } from "../firebase/firebase";
 import { Navbar } from '../components/Navbar'
 
+import { tailspin } from 'ldrs'
+
+tailspin.register()
+
 export const Login = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [isSigningIn, setIsSigningIn] = useState(false);
-    const [errorMessage, setErrorMessage] = useState("");
-    const navigate = useNavigate();
-    
-    const onSubmit = async (e) => {
-        e.preventDefault();
-        if (!isSigningIn) {
-            setIsSigningIn(true);
-            try {
-                await doSignInWithEmailAndPassword(email, password);
-                console.log("User signed in successfully");
-                navigate("/");
-                setErrorMessage("");
-            } catch (error) {
-                // setErrorMessage(error.message);
-                if (error.message === "Firebase: Error (auth/invalid-credential).") {
-                    setErrorMessage("Invalid email or password or user does not exist. Please try again.");
-                }
-                setEmail("");
-                setPassword("");
-                setIsSigningIn(false);
-            }
-        }
+  const emailRef = useRef()
+  const passwordRef = useRef()
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    try {
+      setError("");
+      setLoading(true);
+      await doSignInWithEmailAndPassword(emailRef.current.value, passwordRef.current.value);
+      navigate("/");
+    } catch {
+      setError("Failed to log in");
     }
 
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-          if (user) {
-            // User is signed in, navigate to the homepage
-            navigate("/");
-          }
-        });
-    
-        // Clean up the observer on component unmount
-        return () => unsubscribe();
-      }, [navigate]);
+    setLoading(false)
+  }
 
-    const onGoogleSignIn = (e) => {
-        e.preventDefault();
-        if (!isSigningIn) {
-          setIsSigningIn(true);
-          doSignInWithGoogle().catch((error) => {
-            setErrorMessage(error.message);
-            console.log(errorMessage + "Error signing in with Google");
-            setIsSigningIn(false);
-          });
-        }
-      };
+  const onGoogleSignIn = (e) => {
+    e.preventDefault();
+    if (!loading) {
+      setLoading(true);
+      doSignInWithGoogle().catch((error) => {
+        console.log(error.message);
+        setError("Failed to sign in with google");
+        setLoading(false);
+      });
+    }
+  };
 
-    return (
-        <div className="login-container">
-            <Navbar/>
-            <form className="login-form" onSubmit={onSubmit}>
-                <h2>Login</h2>
-                <p>{errorMessage}</p>
-                <div className="form-group">
-                    <label>Email</label>
-                    <input
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Password</label>
-                    <input
-                        type="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <button type="submit" onClick={onSubmit} disabled={isSigningIn}>Login</button>
-                <h3>OR</h3>
-                <button onClick={onGoogleSignIn} disabled={isSigningIn}>Sign in with Google</button>
-            </form>
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        // User is signed in, navigate to the homepage
+        navigate("/");
+      }
+    });
+
+    // Clean up the observer on component unmount
+    return () => unsubscribe();
+  }, [navigate]);
+
+  return (
+    <Container
+      className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
+      style={{ minHeight: "100vh", maxWidth: "100%", padding: 0}}
+    >
+      <Navbar/>
+      <div className="w-100" style={{ maxWidth: "400px" }}>
+        <Card>
+          <Card.Body>
+            <h2 className="text-center mb-4">Log In</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            <Form onSubmit={handleSubmit}>
+              <Form.Group id="email">
+                <Form.Label>Email</Form.Label>
+                <Form.Control type="email" ref={emailRef} required />
+              </Form.Group>
+              <Form.Group id="password" className="mb-4">
+                <Form.Label>Password</Form.Label>
+                <Form.Control type="password" ref={passwordRef} required />
+              </Form.Group>
+              <Button disabled={loading} className="w-100" type="submit">
+                {loading ? (
+                  <l-tailspin size="25" stroke="5" speed="0.9" color="white"></l-tailspin>
+                ) : (
+                  <>
+                    Log In
+                  </>
+                )}
+              </Button>
+              <hr className="my-4" />
+              <Button onClick={onGoogleSignIn} disabled={loading} className="w-100" type="submit">
+                {loading ? (
+                  <l-tailspin size="25" stroke="5" speed="0.9" color="white"></l-tailspin>
+                ) : (
+                  <>
+                    Log In with Google
+                  </>
+                )}
+              </Button>
+            </Form>
+            <div className="w-100 text-center mt-3">
+              <Link to="/forgot-password">Forgot Password?</Link>
+            </div>
+          </Card.Body>
+        </Card>
+        <div className="w-100 text-center mt-2">
+          Need an account? <Link to="/signup">Sign Up</Link>
         </div>
-       );
+      </div>
+    </Container>
+  )
 }

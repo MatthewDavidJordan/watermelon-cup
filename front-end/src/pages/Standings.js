@@ -1,3 +1,3 @@
 export function Standings () {
-    return <h1>Standings</h1> 
+    return <h1>Standings coming soon...</h1> 
 }

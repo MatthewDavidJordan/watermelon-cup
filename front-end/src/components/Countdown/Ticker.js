@@ -3,7 +3,7 @@ import { ThreeDigitTickerCell } from './ThreeDigitTickerCell'
 import { TickerSeparator } from './TickerSeparator';
 import { useTicker } from '../../hooks/useTicker';
 
-import './Ticker.css';
+import '../../styles/Ticker.css';
 
 export const Ticker = ({ futureDate }) => {
     const { days, hours, minutes, seconds, isTimeUp } = useTicker(futureDate);

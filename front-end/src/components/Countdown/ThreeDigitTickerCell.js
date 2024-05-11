@@ -1,4 +1,4 @@
-import './Ticker.css'
+import '../../styles/Ticker.css'
 
 export const ThreeDigitTickerCell = ({ label, value }) => {
     const formattedValue = (value === null || value === undefined || value === 0 || isNaN(value)) 
