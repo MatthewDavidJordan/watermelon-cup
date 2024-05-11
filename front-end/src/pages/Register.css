@@ -1,0 +1,184 @@
+.registration-container {
+  display: flex;
+  
+  flex-flow: row wrap;
+  
+  justify-content: center;
+  align-items: flex-start;
+  
+  width: 100%;
+  min-height: 100vh;
+  max-height: fit-content;
+}
+  
+.registration-form {
+  width: 50%;
+  min-height: 80vh;
+  max-height: fit-content;
+  
+  margin-top: 10px;
+  
+  padding-left: 20px;
+  padding-right: 20px;
+  
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  
+  background-color: #f9f9f9;
+  
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  
+  justify-content: center;
+  align-content: flex-start;
+  
+  
+  h1 {
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+
+  h2 {
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  h3 {
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  
+  #register-button {
+    margin-top: 40px;
+  }
+  
+  #or-divider {
+    margin-top: 40px;
+    margin-bottom: 40px;
+    
+    font-weight: bold;
+    font-size: 20px;
+  }
+  
+}
+
+#google-auth-button {
+  align-items: center;
+
+  height: 60px;
+  
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  
+  justify-content: center;
+  align-content: center;
+  
+  background-color: #fff;
+  border-radius: 5px;
+  border: thin solid #888;
+  
+  margin-bottom: 40px;
+  
+  gap: 10px;
+}
+
+#google-auth-button:hover {
+  background-color: #f1f1f1;
+}
+
+#continue-button-div {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  
+  justify-content: center;
+  align-items: center;
+  
+  margin-bottom: 20px;
+  
+  #continue-button {
+    margin-top: 20px;
+    border: thin solid #888;
+  }
+  
+  #continue-button:disabled {
+    cursor: not-allowed;
+    background-color: #f1f1f1;
+    opacity: 0.1;
+  }
+}
+
+button {
+  width: 300px;
+  padding: 10px;
+  font-size: 16px;
+  background-color: #c7ccd0;
+  color: #000;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #b7babe;
+}
+
+.registration-container select {
+  /* Reset default styles */
+  width: 330px;
+  appearance: none;
+  border: 1px solid #ccc;
+  padding: 10px 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  /* Add a subtle border on hover */
+  &:hover {
+    border: 1.5px solid #ccc;
+  }
+}
+
+.form-group {
+  height: fit-content;
+  margin-bottom: 10px;
+  margin-left: 5px;
+  margin-right: 5px;
+  
+  width: fit-content;
+  
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+
+  label {
+    display: block;
+    align-self: flex-start;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  input {
+    width: 310px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+}
+
+.full-width {
+  width: 100%;
+  display: flex;
+  
+  justify-content: center;
+}
