@@ -11,6 +11,8 @@
 }
 
 .need-to-register-container {
+    position: absolute;
+    bottom: 0;
     width: 100%;
     height: fit-content;
 
@@ -22,7 +24,15 @@
         padding-top: 2px;
         padding-bottom: 2px;
         color: white;
-        font-size: 1.5rem;
+        font-size: 1.3rem;
+    }
+}
+
+@media screen and (max-width:500px) {
+    .need-to-register-container {
+        a, p {
+            font-size: 1rem;
+        }
     }
 }
 

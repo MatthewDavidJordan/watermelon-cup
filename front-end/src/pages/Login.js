@@ -70,11 +70,11 @@ export const Login = () => {
             <Form onSubmit={handleSubmit}>
               <Form.Group id="email">
                 <Form.Label>Email</Form.Label>
-                <Form.Control type="email" ref={emailRef} required />
+                <Form.Control type="email" ref={emailRef} placeholder="Email" required />
               </Form.Group>
               <Form.Group id="password" className="mb-4">
                 <Form.Label>Password</Form.Label>
-                <Form.Control type="password" ref={passwordRef} required />
+                <Form.Control type="password" ref={passwordRef} placeholder="Password"required />
               </Form.Group>
               <Button disabled={loading} className="w-100" type="submit">
                 {loading ? (

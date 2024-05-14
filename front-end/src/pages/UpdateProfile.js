@@ -19,8 +19,6 @@ export const UpdateProfile = () => {
 
   const { currentUser } = useAuth()
 
-
-
   function handleSubmit(e) {
     e.preventDefault()
     if (passwordRef.current.value !== passwordConfirmRef.current.value) {
