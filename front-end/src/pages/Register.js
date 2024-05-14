@@ -1,277 +1,160 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "../styles/Register.css";
-import { doCreateUserWithEmailAndPassword, doSignInWithGoogle } from "../firebase/auth";
+import React, { useRef, useState, useEffect } from "react"
+import { Container, Form, Button, Card, Alert } from "react-bootstrap"
+import { useNavigate } from "react-router-dom"
+import { Navbar } from '../components/Navbar'
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
-import GoogleIcon from '@mui/icons-material/Google';
-
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase/firebase';
-
-import { Navbar } from '../components/Navbar';
-
-
-
-
+import { auth, db } from "../firebase/firebase";
 
 export const Register = () => {
-    const [onFirstPage, setOnFirstPage] = useState(true);
-    const { userLoggedIn, currentUser } = useAuth();
+  const firstNameRef = useRef()
+  const lastNameRef = useRef()
+  const nicknameRef = useRef()
+  const emailRef = useRef()
+  const phoneRef = useRef()
+  const gradYearRef = useRef()
+  const clubTeamRef = useRef()
+  const footRef = useRef()
+  const preferredPositionRef = useRef()
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [nickname, setNickname] = useState("");
-    const [graduationYear, setGraduationYear] = useState("");
-    const [footPref, setFootPref] = useState("");
-    const [position, setPosition] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [isRegistering, setIsRegistering] = useState(false);
-    const [errorMessage, setErrorMessage] = useState("");
+  const { currentUser, userLoggedIn } = useAuth();
 
-    const navigate = useNavigate();
-
-    const register = async (e) => {
-        e.preventDefault();
-        const passwordMatch = (password === confirmPassword);
-        console.log("User has submitted the form");
-        if (!isRegistering) {
-            setIsRegistering(true);
-            if (passwordMatch){
-                try {
-                    console.log("Creating user with email and password");
-                    await doCreateUserWithEmailAndPassword(email, password);
-                    console.log("User created successfully");
-                    setErrorMessage("");
-                } catch (error) {
-                    setErrorMessage(error.message);
-                    console.log(errorMessage + "Error creating user");
-                    setEmail("");
-                    setPassword("");
-                    setConfirmPassword("");
-                    setIsRegistering(false);
-                }
-            } else {
-                setErrorMessage("Passwords do not match");
-                console.log(errorMessage + "Passwords do not match");
-                setPassword("");
-                setConfirmPassword("");
-                setIsRegistering(false);
-            }
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // Check if the user is already registered
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists() && userDoc.data().registered) {
+          // User is already registered, navigate to the homepage
+          navigate("/");
+        } else {
+          // User is not registered, proceed with the registration process
         }
+      }
+    });
+  
+    // Clean up the observer on component unmount
+    return () => unsubscribe();
+  }, [navigate]);
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+
+    try {
+      setError("")
+      setLoading(true)
+      await addUserInfoToFirestore(e)
+    } catch (error) {
+      setError(error + "Failed to register account")
     }
+    setLoading(false)
+  }
 
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(async (user) => {
-          if (user) {
-            // Check if the user is already registered
-            const userRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userRef);
-            if (userDoc.exists() && userDoc.data().registered) {
-              // User is already registered, navigate to the homepage
-              setErrorMessage('User is already registered');
-              navigate("/");
-            } else {
-              // User is not registered, proceed with the registration process
-            }
-          }
+  const addUserInfoToFirestore = async (e) => {
+    e.preventDefault();
+    if (userLoggedIn) {
+      try {
+        // Add user info to Firestore
+        const userRef = doc(db, 'users', auth.currentUser.uid);
+        await updateDoc(userRef, {
+          firstName: firstNameRef.current.value,
+          lastName: lastNameRef.current.value,
+          nickname: nicknameRef.current.value,
+          email: emailRef.current.value,
+          phone: phoneRef.current.value,
+          graduationYear: gradYearRef.current.value,
+          clubTeam: clubTeamRef.current.value,
+          footPref: footRef.current.value,
+          position: preferredPositionRef.current.value,
+          registered: true,
         });
-      
-        // Clean up the observer on component unmount
-        return () => unsubscribe();
-    }, [navigate]);
+        navigate("/");
+      } catch (error) {
+        setError("Error registering user");
+      }
+    }
+  };
 
-    const onGoogleSignIn = (e) => {
-        e.preventDefault();
-        if (!isRegistering){
-            setIsRegistering(true);
-            doSignInWithGoogle().catch((error) => {
-                setErrorMessage("Error signing in with Google. Please refresh the page and try again.");
-                setIsRegistering(false);
-                console.log(errorMessage + "Error signing in with Google");
-                return;
-            });
-        } 
-    };
-
-    const addUserInfoToFirestore = async (e) => {
-        e.preventDefault();
-        if (userLoggedIn) {
-          try {
-            // Add user info to Firestore
-            const userRef = doc(db, 'users', auth.currentUser.uid);
-            await updateDoc(userRef, {
-              firstName,
-              lastName,
-              nickname,
-              graduationYear,
-              footPref,
-              position,
-              registered: true,
-            });
-            console.log("User info added to Firestore");
-            navigate("/");
-          } catch (error) {
-            setErrorMessage(error.message);
-            console.log(errorMessage + "Error adding user info to Firestore");
-          }
-        }
-      };
-
-    return (
-        <div className="registration-container">
-            <Navbar />
-            { onFirstPage ?
-              (<form className="registration-form" onSubmit={register}>
-                  { userLoggedIn ?
-                  (
-                    <>
-                    <h1>Logged In</h1>
-                    <p className="full-width"> Email: {currentUser.email} </p>
-                    </> 
-                  ) : (<>
-                    <h1>Create Your Account</h1>
-                    <div className="full-width">
-                        <div className="form-group">
-                            <label>Email</label>
-                            <input
-                                type="email"
-                                placeholder="Enter your email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div className="full-width">
-                        <div className="form-group">
-                            <label>Password</label>
-                            <input
-                                type="password"
-                                placeholder="Enter your password (at least 6 characters)"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div className="full-width">
-                        <div className="form-group">
-                            <label>Confirm Password</label>
-                            <input
-                                type="password"
-                                placeholder="Confirm your password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
-                    <p className="full-width"> {errorMessage} </p>
-                    <button id="register-button" onSubmit={register} disabled={isRegistering}>
-                        Register Account
-                    </button>
-
-                    <p className="full-width" id="or-divider">OR</p>
-
-                    <div className="full-width">
-                        <button id="google-auth-button"onClick={onGoogleSignIn} disabled={isRegistering}>
-                            <GoogleIcon /> <p> Register with Google </p>
-                        </button>
-                    </div>
-                  </>)}
-
-                  <hr className="full-width" />
-
-                  <div id="continue-button-div" className="full-width">
-                      <button id="continue-button" onClick={() => setOnFirstPage(false)} disabled={ !userLoggedIn }>
-                          Continue to Player Registration
-                      </button>
-                      <p>Already have an account that's registered? <a href="/login">Login</a></p>
-                  </div>
-              </form> 
-              ) : (
-              <form className="registration-form" onSubmit={addUserInfoToFirestore}>
-                <h1>Register for Watermelon Cup 2024</h1>
-                <div className="full-width">
-                    <div className="form-group">
-                        <label>First Name</label>
-                        <input
-                            type="text"
-                            placeholder="Enter your first name"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            required
-                        />
-                    </div>
-                </div>
-                <div className="full-width">
-                    <div className="form-group">
-                        <label>Last Name</label>
-                        <input
-                            type="text"
-                            placeholder="Enter your last name"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            required
-                        />
-                    </div>
-                </div>
-                <div className="full-width">
-                    <div className="form-group">
-                        <label>Nickname (Optional)</label>
-                        <input
-                            type="text"
-                            placeholder="Enter your nickname (optional)"
-                            value={nickname}
-                            onChange={(e) => setNickname(e.target.value)}
-                        />
-                    </div>
-                </div>
-                <div className="full-width">
-                    <div className="form-group">
-                        <label>Staples Graduation Class</label>
-                        <select value={graduationYear} onChange={(e) => setGraduationYear(e.target.value)} required>
-                            <option value="">Select Year</option>
-                            <option value="before2000">Before 2000</option>
-                            {/* Add options for each year from 2000 to 2028 */}
-                            {Array.from({ length: 29 }, (_, i) => (
-                            <option key={i + 2000} value={i + 2000}>
-                                {i + 2000}
-                            </option>
-                            ))}
-                            <option value="after2028">After 2028</option>
-                        </select>
-                    </div>
-                </div>
-                <hr className="full-width" />
-                <div className="full-width">
-                    <div className="form-group">
-                        <label>Are you right or left footed?</label>
-                        <select value={footPref} onChange={(e) => setFootPref(e.target.value)} required>
-                            <option value="">Select Option</option>
-                            <option value="right">Right</option>
-                            <option value="left">Left</option>
-                            <option value="both">Both</option>
-                        </select>
-                    </div>
-                </div>
-                <div className="full-width">
-                    <div className="form-group">
-                        <label>Pick your preferred position</label>
-                        <select value={position} onChange={(e) => setPosition(e.target.value)} required>
-                            <option value="">Select Position</option>
-                            <option value="goalkeeper">Goalkeeper</option>
-                            <option value="offense">Offense</option>
-                            <option value="defense">Defense</option>
-                            <option value="anywhere">Anywhere</option>
-                        </select>
-                    </div>
-                </div>
-                <button id="register-button" onSubmit={addUserInfoToFirestore}>Register</button>
-              </form>)
-            }
-        </div>
-    );                
+  return (
+    <Container
+      className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
+      style={{ minHeight: "100vh", maxWidth: "100%", padding: 0}}
+    >
+      <Navbar/>
+      <div className="w-100 mt-4 mb-4" style={{ maxWidth: "400px" }}>
+      <Card>
+        <Card.Body>
+          <h2 className="text-center mb-4" style={{ padding: "0 20px" }}>Register for 2024 Watermelon Cup.</h2>
+          <h3 className="text-center mb-4" style={{ fontSize: "18px", padding: "0 20px"}}>
+            Games run every Sunday from 6-8pm from July 10 - August 7.
+          </h3>
+          {error && <Alert variant="danger">{error}</Alert>}
+          <Form onSubmit={handleSubmit}>
+            <Form.Group id="firstName">
+              <Form.Label>First Name</Form.Label>
+              <Form.Control type="text" ref={firstNameRef} placeholder="First Name" required />
+            </Form.Group>
+            <Form.Group id="lastName">
+              <Form.Label>Last Name</Form.Label>
+              <Form.Control type="text" ref={lastNameRef} placeholder="Last Name" required />
+            </Form.Group>
+            <Form.Group id="nickname">
+              <Form.Label>Nickname</Form.Label>
+              <Form.Control type="text" ref={nicknameRef} placeholder="Nickname" defaultValue={currentUser.displayName || ""}required />
+            </Form.Group>
+            <Form.Group id="email">
+              <Form.Label>Email</Form.Label>
+              <Form.Control type="email" ref={emailRef} placeholder="Email" defaultValue={currentUser.email}required />
+            </Form.Group>
+            <Form.Group id="phone">
+              <Form.Label>Phone Number</Form.Label>
+              <Form.Control type="tel" ref={phoneRef} placeholder="Phone Number"required />
+            </Form.Group>
+            <Form.Group id="gradYear">
+              <Form.Label>Staples Graduation Class</Form.Label>
+              <Form.Select ref={gradYearRef} required>
+                <option value="">Select Year</option>
+                <option value="before2000">Before 2000</option>
+                {/* Add options for each year from 2000 to 2028 */}
+                {Array.from({ length: 29 }, (_, i) => (
+                <option key={i + 2000} value={i + 2000}>
+                    {i + 2000}
+                </option>))}
+                <option value="after2028">After 2028</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group id="clubTeam">
+              <Form.Label>Club Team (if applicable)</Form.Label>
+              <Form.Control type="text" ref={clubTeamRef} placeholder="Club Team"/>
+            </Form.Group>
+            <Form.Group id="footPref">
+              <Form.Label>Preferred Foot</Form.Label>
+              <Form.Select ref={footRef} required>
+                <option value="">Select Option</option>
+                <option value="right">Right</option>
+                <option value="left">Left</option>
+                <option value="both">Both</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group id="position" className="mb-4">
+              <Form.Label>Preferred Position</Form.Label>
+              <Form.Control type="text" ref={preferredPositionRef} placeholder="Preferred Position(s)"/>
+            </Form.Group>
+            <Button disabled={loading} className="w-100" type="submit">
+              {loading ? (
+                  <l-tailspin size="25" stroke="5" speed="0.9" color="white"></l-tailspin>
+                ) : (
+                  <>Register</>
+              )}
+            </Button>
+          </Form>
+        </Card.Body>
+      </Card>
+    </div>
+    </Container>
+  )
 }

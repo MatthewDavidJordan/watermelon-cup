@@ -11,6 +11,7 @@ export const Ticker = ({ futureDate }) => {
         <div className='timeIsUp'>Time is up!!!</div>
     ) : (
         <>
+            {/* <h2>Get Ready! Shenanigans commence in:</h2> */}
             <ThreeDigitTickerCell value={days} label="Days" />
             <TickerSeparator />
             <TickerCell value={hours} label="Hours" />
