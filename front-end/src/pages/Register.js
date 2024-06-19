@@ -90,7 +90,7 @@ export const Register = () => {
         <Card.Body>
           <h2 className="text-center mb-4" style={{ padding: "0 20px" }}>Register for 2024 Watermelon Cup.</h2>
           <h3 className="text-center mb-4" style={{ fontSize: "18px", padding: "0 20px"}}>
-            Games run every Sunday from 6-8pm from July 10 - August 7.
+            Games run every Wednesday from 6-8pm from July 10 - August 7.
           </h3>
           {error && <Alert variant="danger">{error}</Alert>}
           <Form onSubmit={handleSubmit}>
