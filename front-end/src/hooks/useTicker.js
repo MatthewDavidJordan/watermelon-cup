@@ -1,39 +1,36 @@
-import { useEffect, useState } from "react";
-import { intervalToDuration, isBefore } from 'date-fns';
+import { useState, useEffect } from 'react';
 
 export const useTicker = (futureDate) => {
-    const [now, setNow] =  useState(new Date());
+    const calculateTimeLeft = () => {
+        const now = new Date();
+        const timeDifferenceMs = futureDate - now;
+        
+        const seconds = Math.floor((timeDifferenceMs / 1000) % 60);
+        const minutes = Math.floor((timeDifferenceMs / 1000 / 60) % 60);
+        const hours = Math.floor((timeDifferenceMs / (1000 * 60 * 60)) % 24);
+        const days = Math.floor(timeDifferenceMs / (1000 * 60 * 60 * 24));
 
-    useEffect(() => {        
-        const interval = setInterval(() => {
-            setNow(new Date());          
+        return {
+            total: timeDifferenceMs,
+            days,
+            hours,
+            minutes,
+            seconds
+        };
+    };
+
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeLeft(calculateTimeLeft());
         }, 1000);
 
-        return () => {
-          clearInterval(interval);
-        };
+        return () => clearInterval(timer);
     }, [futureDate]);
 
-    const isTimeUp = isBefore(futureDate, now);
-
-    if (isTimeUp) {
-        return { days: 0, hours: 0, minutes: 0, seconds: 0, isTimeUp };
-    }
-
-    let { months, days, hours, minutes, seconds } = intervalToDuration({
-        start: now,
-        end: futureDate
-    });
-
-    days = days + (months * 30);
-
-    // console.log('interval', intervalToDuration({
-    //     start: now,
-    //     end: futureDate
-    // }));
-
-    // log the values to the console
-    // console.log(months, days, hours, minutes, seconds);
-
-    return { days, hours, minutes, seconds, isTimeUp };
+    return {
+        ...timeLeft,
+        isTimeUp: timeLeft.total <= 0
+    };
 };

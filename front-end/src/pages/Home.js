@@ -15,8 +15,8 @@ import { useAuth } from '../contexts/authContexts/firebaseAuth';
 
 export const Home = () => {
 
-    // Set the future date for the countdown
-    const futureDate = new Date('2024-07-09T18:00:00');
+    // Event date in UTC (July 10th, 2024, 10 PM UTC is equivalent to 6 PM EDT)
+    const futureDate = new Date(Date.UTC(2024, 6, 10, 22, 0, 0)); // Month is 0-indexed
 
     const { userLoggedIn } = useAuth();
 

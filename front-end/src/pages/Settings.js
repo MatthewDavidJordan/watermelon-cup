@@ -3,14 +3,15 @@ import { Container, Card, Button, Alert } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import { Link } from "react-router-dom"
 import { Navbar } from '../components/Navbar'
-import { auth } from "../firebase/firebase"
+import { auth, db } from "../firebase/firebase"
 import { doSignOut } from "../firebase/auth";
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
-
+import { doc, getDoc } from 'firebase/firestore';
 
 export const Settings = () => {
   const [error, setError] = useState("");
-  const { currentUser } = useAuth();
+  const [team, setTeam] = useState(null);
+  const { currentUser, userLoggedIn } = useAuth();
 
   const navigate = useNavigate();
 
@@ -36,6 +37,25 @@ export const Settings = () => {
     return () => unsubscribe();
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchUserTeam = async () => {
+      if (userLoggedIn && auth.currentUser) {
+        const userRef = doc(db, 'users', auth.currentUser.uid);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setTeam(userData.currentTeam || null);
+        } else {
+          setTeam(null);
+        }
+      } else {
+        setTeam(null);
+      }
+    };
+
+    fetchUserTeam();
+  }, [userLoggedIn]);
+
   return (
     <Container
       className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
@@ -47,7 +67,19 @@ export const Settings = () => {
           <Card.Body>
             <h2 className="text-center mb-4">Profile</h2>
             {error && <Alert variant="danger">{error}</Alert>}
-            <strong>Email:</strong> {currentUser.email}
+            <Card.Text>
+              <strong>Email: </strong> 
+              {currentUser.email}
+            </Card.Text>
+            <Card.Text>
+            {team ? (
+              <>
+                <strong>Team:</strong> {team}
+              </>
+            ) : (
+              <p>You're currently not on a Watermelon Cup Team for the summer of 2024. If you haven't registered please register from the home page.</p>
+            )}
+            </Card.Text>
             <Link to="/update-profile" className="btn btn-primary w-100 mt-3">
               Update Profile
             </Link>
