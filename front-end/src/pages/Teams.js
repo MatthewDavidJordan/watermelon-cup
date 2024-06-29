@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Card, CardGroup, ListGroup } from "react-bootstrap";
 import { Navbar } from '../components/Navbar';
 import { db } from "../firebase/firebase";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 
 export function Teams() {
   const [teams, setTeams] = useState([]);
@@ -42,24 +42,25 @@ export function Teams() {
     const fetchPlayerDetails = async (playerEmails) => {
       const players = await Promise.all(playerEmails.map(async (email) => {
         try {
-          // Query the users collection to find the player with the corresponding email
           const usersCollection = collection(db, 'users');
-          const query = usersCollection.where('email', '==', email);
-          const userSnapshot = await getDocs(query);
-
+          const q = query(usersCollection, where('email', '==', email));
+          const userSnapshot = await getDocs(q);
+    
           if (!userSnapshot.empty) {
             const userData = userSnapshot.docs[0].data();
-            return { email: email, nickname: userData.nickname };
+            return { email: email, firstName: userData.firstName, nickname: userData.nickname, lastName: userData.lastName};
           } else {
-            return { email: email, nickname: "Unknown" }; // Player not found
+            return { email: email, nickname: "Unknown" };
           }
         } catch (error) {
           console.error("Error fetching player details:", error);
-          return { email: email, nickname: "Error" }; // Handle error fetching player details
+          return { email: email, nickname: "Error" };
         }
       }));
       return players;
     };
+    
+    
 
     fetchTeams();
   }, []);
@@ -71,14 +72,14 @@ export function Teams() {
     >
       <Navbar />
       <div className="w-100" style={{ maxWidth: "1000px" }}>
-        <h2>Watermelon Cup 2024</h2>
+        <h2>Watermelon Cup 2024 Teams</h2>
         <CardGroup>
           {teams.map(team => (
             <Card key={team.id} style={{ marginBottom: "20px" }}>
               <Card.Header>{team.name}</Card.Header>
               <ListGroup variant="flush">
                 {team.players && team.players.map((player, index) => (
-                  <ListGroup.Item key={index}>{player.nickname}</ListGroup.Item>
+                  <ListGroup.Item key={index}>{player.firstName + " " + player.lastName}</ListGroup.Item>
                 ))}
               </ListGroup>
             </Card>
