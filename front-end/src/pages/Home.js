@@ -29,7 +29,7 @@ export const Home = () => {
             const userDoc = await getDoc(userRef);
             if (userDoc.exists()) {
               const userData = userDoc.data();
-              setRegistered(userData.registered);
+              setRegistered(userData.registered2025);
             } else {
               setRegistered(false);
             }
@@ -48,7 +48,7 @@ export const Home = () => {
         <div className='home-layout'>
             { !registered && (
                 <div className='need-to-register-container'>
-                    <p>You are not registered. <Link to="/register">Register for 2024 Watermelon Cup</Link></p>
+                    <p>You are not registered. <Link to="/register">Register for 2025 Watermelon Cup</Link></p>
                 </div>
             
             )}

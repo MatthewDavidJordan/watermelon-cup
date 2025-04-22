@@ -77,7 +77,7 @@ export const Settings = () => {
                 <strong>Team:</strong> {team}
               </>
             ) : (
-              <p>You're currently not on a Watermelon Cup Team for the summer of 2024. If you haven't registered please register from the home page.</p>
+              <p>You're currently not on a Watermelon Cup Team for the summer of 2025. If you haven't registered please register from the home page.</p>
             )}
             </Card.Text>
             <Link to="/update-profile" className="btn btn-primary w-100 mt-3">
