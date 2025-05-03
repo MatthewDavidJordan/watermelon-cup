@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Container, Card, CardGroup, ListGroup } from "react-bootstrap";
 import { db } from "../firebase/firebase";
-import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 export function Teams() {
   const [teams, setTeams] = useState([]);
