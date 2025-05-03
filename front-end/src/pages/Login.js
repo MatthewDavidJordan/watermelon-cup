@@ -57,7 +57,7 @@ export const Login = () => {
 
   return (
     <Container
-      className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
+      className="d-flex flex-row flex-wrap justify-content-center align-items-center"
       style={{ minHeight: "100vh", maxWidth: "100%", padding: 0}}
     >
       <div className="w-100" style={{ maxWidth: "400px" }}>
