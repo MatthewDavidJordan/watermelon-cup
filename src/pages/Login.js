@@ -2,9 +2,8 @@ import React, { useRef, useState, useEffect } from "react"
 import { Container, Form, Button, Card, Alert } from "react-bootstrap"
 import { doSignInWithEmailAndPassword, doSignInWithGoogle } from "../firebase/auth";
 import { Link, useNavigate } from "react-router-dom"
-
+import { useAuth } from "../contexts/authContexts/firebaseAuth";
 import { auth } from "../firebase/firebase";
-
 import { tailspin } from 'ldrs'
 
 tailspin.register()
@@ -14,7 +13,12 @@ export const Login = () => {
   const passwordRef = useRef()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const { userLoggedIn } = useAuth();
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (userLoggedIn) navigate("/");
+  }, [userLoggedIn, navigate]);
 
   async function handleSubmit(e) {
     e.preventDefault();

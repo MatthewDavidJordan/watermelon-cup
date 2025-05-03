@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react"
+import React, { useRef, useState, useEffect } from "react"
 import { Container, Form, Button, Card, Alert } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { updatePass, updateEmailAddress } from "../firebase/auth";
@@ -16,7 +16,11 @@ export const UpdateProfile = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const { currentUser } = useAuth()
+  const { currentUser, userLoggedIn } = useAuth()
+
+  useEffect(() => {
+    if (!userLoggedIn) navigate("/login")
+  }, [userLoggedIn, navigate])
 
   function handleSubmit(e) {
     e.preventDefault()

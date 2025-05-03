@@ -23,6 +23,12 @@ export const Register = () => {
   const [userData, setUserData] = useState({});
 
   useEffect(() => {
+    if (!currentUser) {
+      navigate("/login");
+    }
+  }, [currentUser, navigate]);
+
+  useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         // Check if the user is already registered for the 2025 season
@@ -61,8 +67,8 @@ export const Register = () => {
       } = userData;
       firstNameRef.current.value = firstName || '';
       lastNameRef.current.value = lastName || '';
-      nicknameRef.current.value = nickname || currentUser.displayName || '';
-      emailRef.current.value = email || currentUser.email || '';
+      nicknameRef.current.value = nickname || currentUser?.displayName || '';
+      emailRef.current.value = email || currentUser?.email || '';
       phoneRef.current.value = phone || '';
       gradYearRef.current.value = graduationYear || '';
       clubTeamRef.current.value = clubTeam || '';
@@ -133,11 +139,11 @@ export const Register = () => {
             </Form.Group>
             <Form.Group id="nickname">
               <Form.Label>Nickname</Form.Label>
-              <Form.Control type="text" ref={nicknameRef} placeholder="Nickname" defaultValue={userData.nickname || currentUser.displayName || ""} required />
+              <Form.Control type="text" ref={nicknameRef} placeholder="Nickname" defaultValue={userData.nickname || currentUser?.displayName || ""} required />
             </Form.Group>
             <Form.Group id="email">
               <Form.Label>Email</Form.Label>
-              <Form.Control type="email" ref={emailRef} placeholder="Email" defaultValue={userData.email || currentUser.email} required />
+              <Form.Control type="email" ref={emailRef} placeholder="Email" defaultValue={userData.email || currentUser?.email || ""} required />
             </Form.Group>
             <Form.Group id="phone">
               <Form.Label>Phone Number</Form.Label>

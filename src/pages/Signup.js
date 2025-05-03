@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react"
 import { Container, Form, Button, Card, Alert } from "react-bootstrap"
 import { doCreateUserWithEmailAndPassword, doSignInWithGoogle } from "../firebase/auth";
 import { Link, useNavigate } from "react-router-dom"
-
+import { useAuth } from "../contexts/authContexts/firebaseAuth";
 import { auth } from "../firebase/firebase";
 
 export const Signup = () => {
@@ -12,6 +12,11 @@ export const Signup = () => {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { userLoggedIn } = useAuth();
+
+  useEffect(() => {
+    if (userLoggedIn) navigate("/");
+  }, [userLoggedIn, navigate]);
 
   async function handleSubmit(e) {
     e.preventDefault()

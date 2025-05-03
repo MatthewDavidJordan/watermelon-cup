@@ -1,13 +1,21 @@
-import React, { useRef, useState } from "react"
+import React, { useRef, useState, useEffect } from "react"
 import { Container, Form, Button, Card, Alert } from "react-bootstrap"
 import { doPasswordReset } from "../firebase/auth";
 import { Link } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/authContexts/firebaseAuth";
 
 import { tailspin } from 'ldrs'
 
 tailspin.register()
 
 export const ForgotPassword = () => {
+  const { userLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (userLoggedIn) navigate("/");
+  }, [userLoggedIn, navigate]);
+
   const emailRef = useRef()
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")

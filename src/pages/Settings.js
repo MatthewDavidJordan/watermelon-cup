@@ -14,6 +14,10 @@ export const Settings = () => {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!userLoggedIn) navigate("/login");
+  }, [userLoggedIn, navigate]);
+
   async function handleLogout() {
     setError("");
 
