@@ -4,7 +4,6 @@ import { doSignInWithEmailAndPassword, doSignInWithGoogle } from "../firebase/au
 import { Link, useNavigate } from "react-router-dom"
 
 import { auth } from "../firebase/firebase";
-import { Navbar } from '../components/Navbar'
 
 import { tailspin } from 'ldrs'
 
@@ -61,7 +60,6 @@ export const Login = () => {
       className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
       style={{ minHeight: "100vh", maxWidth: "100%", padding: 0}}
     >
-      <Navbar/>
       <div className="w-100" style={{ maxWidth: "400px" }}>
         <Card>
           <Card.Body>

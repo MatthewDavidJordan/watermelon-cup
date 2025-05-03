@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react"
 import { Container, Card, Button, Alert } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import { Link } from "react-router-dom"
-import { Navbar } from '../components/Navbar'
 import { auth, db } from "../firebase/firebase"
 import { doSignOut } from "../firebase/auth";
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
@@ -58,10 +57,9 @@ export const Settings = () => {
 
   return (
     <Container
-      className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
+      className="d-flex flex-column justify-content-center align-items-center"
       style={{ minHeight: "100vh", maxWidth: "100%", padding: 0}}
     >
-      <Navbar/>
       <div className="w-100" style={{ maxWidth: "400px" }}>
         <Card>
           <Card.Body>

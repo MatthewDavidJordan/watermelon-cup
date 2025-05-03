@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from "react"
 import { Container, Form, Button, Card, Alert } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
-import { Navbar } from '../components/Navbar'
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from "../firebase/firebase";
@@ -115,7 +114,6 @@ export const Register = () => {
       className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
       style={{ minHeight: "100vh", maxWidth: "100%", padding: 0}}
     >
-      <Navbar/>
       <div className="w-100 mt-4 mb-4" style={{ maxWidth: "400px" }}>
       <Card>
         <Card.Body>
