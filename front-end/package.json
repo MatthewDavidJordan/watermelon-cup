@@ -15,6 +15,7 @@
     "date-fns": "^3.2.0",
     "firebase": "^10.10.0",
     "ldrs": "^1.0.1",
+    "lucide-react": "^0.507.0",
     "react": "^18.2.0",
     "react-awesome-reveal": "^4.2.10",
     "react-bootstrap": "^2.10.2",

@@ -2,7 +2,6 @@ import React, { useRef, useState } from "react"
 import { Container, Form, Button, Card, Alert } from "react-bootstrap"
 import { doPasswordReset } from "../firebase/auth";
 import { Link } from "react-router-dom"
-import { Navbar } from '../components/Navbar'
 
 import { tailspin } from 'ldrs'
 
@@ -35,7 +34,6 @@ export const ForgotPassword = () => {
       className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
       style={{ minHeight: "100vh", maxWidth: "100%", padding: 0}}
     >
-      <Navbar/>
       <div className="w-100" style={{ maxWidth: "400px" }}>
         <Card>
           <Card.Body>

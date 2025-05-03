@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Container, Card, CardGroup, ListGroup } from "react-bootstrap";
-import { Navbar } from '../components/Navbar';
 import { db } from "../firebase/firebase";
 import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 
@@ -68,9 +67,8 @@ export function Teams() {
   return (
     <Container
       className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
-      style={{ minHeight: "100vh", maxWidth: "100%", padding: 0 }}
+      style={{ minHeight: "100vh", maxWidth: "100%", padding: "20px 0" }}
     >
-      <Navbar />
       <div className="w-100" style={{ maxWidth: "1000px" }}>
         <h2>Watermelon Cup 2024 Teams</h2>
         <CardGroup>

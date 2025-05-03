@@ -1,0 +1,416 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+    "Helvetica Neue", sans-serif;
+  color: #333;
+  line-height: 1.5;
+  min-height: 100vh;
+  background-color: #fff;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Button styles */
+.btn {
+  display: inline-block;
+  font-weight: 600;
+  text-align: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #22c55e;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #16a34a;
+}
+
+.btn-white {
+  background-color: white;
+  color: #22c55e;
+}
+
+.btn-white:hover {
+  background-color: #f9fafb;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+}
+
+.btn-outline:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-register {
+  background-color: #22c55e;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.btn-register:hover {
+  background-color: #16a34a;
+}
+
+/* Section styles */
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-header h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.section-header p {
+  max-width: 42rem;
+  margin: 0 auto;
+  color: #6b7280;
+}
+
+/* Home page specific styles */
+.home-page {
+  min-height: 100vh;
+}
+
+.hero-section {
+  position: relative;
+}
+
+.hero-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: white;
+  text-align: center;
+}
+
+.hero-content h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.hero-cta {
+  margin-top: 2rem;
+}
+
+/* League info section */
+.league-info-section {
+  background-color: white;
+  padding: 4rem 0;
+}
+
+.info-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .info-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .info-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.info-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.info-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  background-color: #dcfce7;
+  color: #22c55e;
+  margin-bottom: 1rem;
+}
+
+.info-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-list li {
+  display: flex;
+  justify-content: space-between;
+  color: #6b7280;
+}
+
+.info-list .value {
+  font-weight: 500;
+}
+
+.venue-link {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.venue-link:hover {
+  text-decoration: underline;
+}
+
+/* Standings section */
+.standings-section {
+  background-color: #f9fafb;
+  padding: 4rem 0;
+}
+
+.standings-matches-grid {
+  display: grid;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .standings-matches-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* View more links */
+.view-more-link {
+  color: #22c55e;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.view-more-link:hover {
+  color: #16a34a;
+}
+
+/* Main navigation header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: #111827;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.site-header .container {
+  display: flex;
+  height: 4rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.logo-icon {
+  color: #22c55e;
+}
+
+.desktop-nav {
+  display: none;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .desktop-nav {
+    display: flex;
+  }
+}
+
+.nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: #22c55e;
+}
+
+.desktop-cta {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .desktop-cta {
+    display: block;
+  }
+}
+
+.mobile-menu-btn {
+  display: flex;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .mobile-menu-btn {
+    display: none;
+  }
+}
+
+.menu-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.mobile-nav-container {
+  padding: 0 1rem 1rem;
+}
+
+@media (min-width: 768px) {
+  .mobile-nav-container {
+    display: none;
+  }
+}
+
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mobile-nav-link {
+  display: block;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+}
+
+.mobile-nav-link:hover {
+  background-color: #1f2937;
+}
+
+.mobile-register-btn {
+  display: block;
+  background-color: #22c55e;
+  color: white;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+}
+
+.mobile-register-btn:hover {
+  background-color: #16a34a;
+}
+
+/* Need to Register Section */
+.need-to-register-section {
+  padding: 2rem 0;
+  background-color: #babfc7;
+  text-align: center;
+}
+
+.need-to-register-section .need-to-register-container {
+  display: block;
+  margin: 1rem;
+}
+
+@media (min-width: 768px) {
+  .need-to-register-section .need-to-register-container {
+    margin: 1rem auto;
+    width: fit-content;
+  }
+}
+
+.need-to-register-container {
+  display: inline-block;
+  background-color: #22c55e;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.need-to-register-container p {
+  margin: 0;
+}
+
+.need-to-register-container a {
+  color: white;
+  text-decoration: underline;
+}
+
+/* Override for Need to Register button to enforce green */
+.need-to-register-section .need-to-register-container {
+  background-color: #22c55e !important;
+  color: white !important;
+}
+.need-to-register-section .need-to-register-container:hover {
+  background-color: #16a34a !important;
+}

@@ -11,10 +11,14 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { AuthProvider } from './contexts/authContexts/firebaseAuth';
 import { Signup } from './pages/Signup';
 import { UpdateProfile } from './pages/UpdateProfile';
+import { MainNavigation } from './components/main-navigation';
+import { Footer } from './components/footer';
+
 
 function App() {
   return (
     <AuthProvider>
+      <MainNavigation/>
       <Routes>
         <Route path="/" element={ <Home/> } />
         <Route path="/teams" element={ <Teams/> } />
@@ -27,6 +31,7 @@ function App() {
         <Route path="/signup" element={<Signup/>} />
         <Route path="/update-profile" element={<UpdateProfile/>} />
       </Routes>
+      <Footer/>
     </AuthProvider>
   );
 }
