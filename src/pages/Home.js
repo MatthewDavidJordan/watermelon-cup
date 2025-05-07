@@ -52,13 +52,13 @@ export const Home = () => {
         </div>
       </section>
 
-      <section className="need-to-register-section">
-        { !registered && (
-            <Link to="/register" className="btn btn-primary need-to-register-container">
-                You are not registered. Register for 2025 Watermelon Cup
-            </Link>
-        )}
-      </section>
+      { !registered && (
+        <section className="need-to-register-section">
+          <Link to="/register" className="btn btn-primary need-to-register-container">
+            You are not registered. Register for 2025 Watermelon Cup
+          </Link>
+        </section>
+      )}
 
       {/* League Info Section */}
       <section className="league-info-section">
