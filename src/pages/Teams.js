@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
+// import { Link } from "react-router-dom";
+import "../styles/teams.css";
 
 export function Teams() {
   const [teams, setTeams] = useState([]);
+  const [expandedTeams, setExpandedTeams] = useState({});
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -64,32 +67,100 @@ export function Teams() {
   }, []);
 
   return (
-    <div className="container d-flex flex-row flex-wrap justify-content-center align-items-flex-start" style={{ minHeight: "100vh", maxWidth: "100%", padding: "20px 0" }}>
-      <div className="w-100">
-        <section className="league-info-section">
-          <div className="container-fluid">
-            <div className="section-header">
-              <h2>Watermelon Cup 2024 Teams</h2>
-              <p>View rosters for each team.</p>
-            </div>
-            <div className="info-cards d-flex flex-wrap justify-content-center">
-              {teams.map(team => (
-                <div key={team.id} className="info-card" style={{ margin: "0 10px 20px", width: "300px" }}>
-                  <table className="table table-bordered team-table">
-                    <thead>
-                      <tr><th>{team.name}</th></tr>
-                    </thead>
-                    <tbody>
-                      {team.players && team.players.map((player, index) => (
-                        <tr key={index}><td>{player.firstName + " " + player.lastName}</td></tr>
-                      ))}
-                    </tbody>
-                  </table>
+    <div className="teams-page">
+      {/* Hero section */}
+      <div className="teams-hero">
+        <div className="teams-hero-container">
+          <h1 className="teams-hero-title">Watermelon Cup 2024 Teams</h1>
+          <p className="teams-hero-description">
+            Explore the teams competing in this year's tournament and discover their players.
+          </p>
+        </div>
+      </div>
+
+      {/* Teams grid */}
+      <div className="teams-container">
+        <div className="teams-grid">
+          {teams.map((team) => (
+            <div key={team.id} className="team-card">
+              <div className="team-color-bar" style={{ backgroundColor: team.name === "Brazil" ? "#FFDF00" : 
+                                                                       team.name === "North Macedonia" ? "#D20000" :
+                                                                       team.name === "USA" ? "#3C3B6E" :
+                                                                       team.name === "Nigeria" ? "#008751" :
+                                                                       team.name === "Ireland" ? "#169B62" :
+                                                                       team.name === "Israel" ? "#0038B8" : "#22c55e" }} />
+              <div className="team-card-content">
+                <div className="team-header">
+                  <div className="team-flag-container" style={{ backgroundColor: "white" }}>
+                    {/* Blank white square instead of image */}
+                  </div>
+                  <h2 className="team-name">{team.name}</h2>
                 </div>
-              ))}
+
+                <div className="team-stats">
+                  <div className="stat-item">
+                    <span className="stat-value">{team.wins || 0}</span>
+                    <span className="stat-label">Wins</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-value">{team.draws || 0}</span>
+                    <span className="stat-label">Draws</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-value">{team.losses || 0}</span>
+                    <span className="stat-label">Losses</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-value">{team.goalsFor || 0}</span>
+                    <span className="stat-label">GF</span>
+                  </div>
+                </div>
+
+                <div className="players-section">
+                  <h3 className="players-title">Players</h3>
+                  <div className="players-container">
+                    {team.players && team.players.slice(0, 5).map((player, index) => (
+                      <span key={index} className="player-tag">
+                        {player.firstName} {player.lastName}
+                      </span>
+                    ))}
+                    {team.players && team.players.length > 5 && !expandedTeams[team.id] && (
+                      <span 
+                        className="player-tag" 
+                        onClick={() => setExpandedTeams({...expandedTeams, [team.id]: true})}
+                        style={{ cursor: 'pointer', backgroundColor: '#e2f5ea', color: '#16a34a' }}
+                      >
+                        Show +{team.players.length - 5} players
+                      </span>
+                    )}
+                    {team.players && expandedTeams[team.id] && team.players.slice(5).map((player, index) => (
+                      <span key={`extended-${index}`} className="player-tag">
+                        {player.firstName} {player.lastName}
+                      </span>
+                    ))}
+                    {team.players && expandedTeams[team.id] && (
+                      <span 
+                        className="player-tag" 
+                        onClick={() => setExpandedTeams({...expandedTeams, [team.id]: false})}
+                        style={{ cursor: 'pointer', backgroundColor: '#fee2e2', color: '#dc2626' }}
+                      >
+                        Show less
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <button 
+                  className="view-details-button" 
+                  style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                  disabled
+                >
+                  Team Details Coming Soon
+                </button>
+              </div>
             </div>
-          </div>
-        </section>
+          ))}
+        </div>
       </div>
     </div>
   );
