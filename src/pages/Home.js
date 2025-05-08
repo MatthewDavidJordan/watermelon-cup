@@ -44,21 +44,15 @@ export const Home = () => {
         <div className="hero-content">
           <h1>Watermelon Cup 2025</h1>
           <CountdownTimer targetDate="2025-07-09T18:00:00-04:00" />
-          {/* <div className="hero-cta">
-            <Link href="/register" className="btn btn-primary">
-              Register Now
-            </Link>
-          </div> */}
+          {(!userLoggedIn || !registered) && (
+            <div className="hero-cta">
+              <Link to={userLoggedIn ? "/register" : "/login"} className="btn-register">
+                {userLoggedIn ? 'Register Now' : 'Login to Register'}
+              </Link>
+            </div>
+          )}
         </div>
       </section>
-
-      { !registered && (
-        <section className="need-to-register-section">
-          <Link to="/register" className="btn btn-primary need-to-register-container">
-            You are not registered. Register for 2025 Watermelon Cup
-          </Link>
-        </section>
-      )}
 
       {/* League Info Section */}
       <section className="league-info-section">

@@ -73,10 +73,24 @@ ul {
 .btn-register {
   background-color: #22c55e;
   color: white;
-  padding: 0.5rem 1rem;
+  padding: 1rem 2.5rem;
   border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.2s;
+}
+
+.btn-register:hover, .btn-register:focus {
+  background-color: #16a34a;
+  color: white;
+  text-decoration: none;
+}
+
+.btn-register:visited {
+  color: white;
+  text-decoration: none;
 }
 
 .btn-register:hover {

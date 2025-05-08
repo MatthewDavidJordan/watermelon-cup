@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Container, Card, CardGroup, ListGroup } from "react-bootstrap";
 import { db } from "../firebase/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 
@@ -65,25 +64,33 @@ export function Teams() {
   }, []);
 
   return (
-    <Container
-      className="d-flex flex-row flex-wrap justify-content-center align-items-flex-start"
-      style={{ minHeight: "100vh", maxWidth: "100%", padding: "20px 0" }}
-    >
-      <div className="w-100" style={{ maxWidth: "1000px" }}>
-        <h2>Watermelon Cup 2024 Teams</h2>
-        <CardGroup>
-          {teams.map(team => (
-            <Card key={team.id} style={{ marginBottom: "20px" }}>
-              <Card.Header>{team.name}</Card.Header>
-              <ListGroup variant="flush">
-                {team.players && team.players.map((player, index) => (
-                  <ListGroup.Item key={index}>{player.firstName + " " + player.lastName}</ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Card>
-          ))}
-        </CardGroup>
+    <div className="container d-flex flex-row flex-wrap justify-content-center align-items-flex-start" style={{ minHeight: "100vh", maxWidth: "100%", padding: "20px 0" }}>
+      <div className="w-100">
+        <section className="league-info-section">
+          <div className="container-fluid">
+            <div className="section-header">
+              <h2>Watermelon Cup 2024 Teams</h2>
+              <p>View rosters for each team.</p>
+            </div>
+            <div className="info-cards d-flex flex-wrap justify-content-center">
+              {teams.map(team => (
+                <div key={team.id} className="info-card" style={{ margin: "0 10px 20px", width: "300px" }}>
+                  <table className="table table-bordered team-table">
+                    <thead>
+                      <tr><th>{team.name}</th></tr>
+                    </thead>
+                    <tbody>
+                      {team.players && team.players.map((player, index) => (
+                        <tr key={index}><td>{player.firstName + " " + player.lastName}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </div>
-    </Container>
+    </div>
   );
 }
