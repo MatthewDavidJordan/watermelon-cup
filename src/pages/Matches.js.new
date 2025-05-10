@@ -220,7 +220,7 @@ export function Matches() {
             {matchesData[`week${week}`] && (
               <>
                 {/* Round 1 */}
-                {matchesData[`week${week}`].round1 && matchesData[`week${week}`].round1.length > 0 ? (
+                {matchesData[`week${week}`].round1 && matchesData[`week${week}`].round1.length > 0 && (
                   <div className="round-section">
                     <h2 className="round-title">Round 1</h2>
                     <div className="matches-list">
@@ -270,17 +270,10 @@ export function Matches() {
                       ))}
                     </div>
                   </div>
-                ) : (
-                  <div className="round-section">
-                    <h2 className="round-title">Round 1</h2>
-                    <div className="no-matches-message">
-                      <p>No match data found for this round</p>
-                    </div>
-                  </div>
                 )}
 
                 {/* Round 2 */}
-                {matchesData[`week${week}`].round2 && matchesData[`week${week}`].round2.length > 0 ? (
+                {matchesData[`week${week}`].round2 && matchesData[`week${week}`].round2.length > 0 && (
                   <div className="round-section">
                     <h2 className="round-title">Round 2</h2>
                     <div className="matches-list">
@@ -328,13 +321,6 @@ export function Matches() {
                           </div>
                         </div>
                       ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="round-section">
-                    <h2 className="round-title">Round 2</h2>
-                    <div className="no-matches-message">
-                      <p>No match data found for this round</p>
                     </div>
                   </div>
                 )}

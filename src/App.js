@@ -13,6 +13,7 @@ import { Signup } from './pages/Signup';
 import { UpdateProfile } from './pages/UpdateProfile';
 import { MainNavigation } from './components/main-navigation';
 import { Footer } from './components/footer';
+import TeamDetail from './pages/TeamDetail';
 
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword/>} />
         <Route path="/signup" element={<Signup/>} />
         <Route path="/update-profile" element={<UpdateProfile/>} />
+        <Route path="/teams/:teamId/:leagueId" element={<TeamDetail/>} />
       </Routes>
       <Footer/>
     </AuthProvider>

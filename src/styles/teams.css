@@ -236,3 +236,324 @@
     font-size: 3rem;
   }
 }
+
+/* ==============================
+   TEAM DETAIL PAGE STYLES 
+   ============================== */
+
+.detail-page {
+  background-color: #f9fafb;
+  min-height: 100vh;
+  padding-bottom: 4rem;
+}
+
+/* Detail Header */
+.detail-header {
+  background: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.7));
+  background-size: cover;
+  background-position: center;
+  color: white;
+  position: relative;
+}
+
+.detail-header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 1rem;
+}
+
+.detail-back-link {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+  text-decoration: none;
+}
+
+.detail-back-link:hover {
+  color: white;
+}
+
+.detail-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detail-logo {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background-color: white;
+  flex-shrink: 0;
+}
+
+.detail-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.detail-description {
+  font-size: 1.25rem;
+  opacity: 0.8;
+  max-width: 36rem;
+}
+
+.detail-color-bar {
+  height: 0.5rem;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+/* Main Detail Content */
+.detail-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Detail Stats Cards */
+.detail-stats-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.detail-stat-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.detail-stat-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.detail-stat-value.wins { color: #22c55e; }
+.detail-stat-value.draws { color: #f59e0b; }
+.detail-stat-value.losses { color: #ef4444; }
+.detail-stat-value.goals { color: #3b82f6; }
+
+.detail-stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Detail Content Grid */
+.detail-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+/* Detail Card Styles */
+.detail-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.detail-card-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.detail-card-icon {
+  color: #6b7280;
+  margin-right: 0.5rem;
+}
+
+.detail-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.detail-card-body {
+  padding: 1.5rem;
+}
+
+/* Detail Squad Section */
+.detail-coach-info {
+  margin-bottom: 1rem;
+}
+
+.detail-coach-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.detail-coach-name {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.detail-squad-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-squad-table th {
+  text-align: left;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #f9fafb;
+}
+
+.detail-squad-table td {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.detail-squad-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.detail-player-number {
+  font-weight: 600;
+  color: #111827;
+}
+
+.detail-player-name {
+  color: #111827;
+}
+
+.detail-player-position {
+  color: #6b7280;
+}
+
+/* Detail Matches Section */
+.detail-match-item {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.detail-match-item:last-child {
+  border-bottom: none;
+}
+
+.detail-match-item:hover {
+  background-color: #f9fafb;
+}
+
+.detail-match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.detail-match-result {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.detail-result-win {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.detail-result-loss {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.detail-result-draw {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.detail-match-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-match-opponent {
+  font-weight: 500;
+}
+
+.detail-match-score {
+  font-weight: 700;
+}
+
+.detail-card-footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  text-align: right;
+}
+
+.detail-view-all-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #22c55e;
+  text-decoration: none;
+}
+
+.detail-view-all-link:hover {
+  color: #16a34a;
+}
+
+/* Detail Team Stats */
+.detail-stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detail-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-stat-item-label {
+  color: #6b7280;
+}
+
+.detail-stat-item-value {
+  font-weight: 600;
+}
+
+/* Detail Page Responsive */
+@media (min-width: 768px) {
+  .detail-stats-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .detail-header-content {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .detail-content-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}

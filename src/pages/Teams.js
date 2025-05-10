@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
-// import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
 import "../styles/teams.css";
 import useLeagueStats from "../hooks/useLeagueStats";
 
@@ -163,13 +163,13 @@ export function Teams() {
                   </div>
                 </div>
 
-                <button 
-                  className="view-details-button" 
-                  style={{ opacity: 0.6, cursor: 'not-allowed' }}
-                  disabled
+                <Link
+                  to={`/teams/${team.id}/${leagueId}`}
+                  className="view-details-button"
+                  style={{ cursor: 'pointer' }}
                 >
-                  Team Details Coming Soon
-                </button>
+                  View Details
+                </Link>
               </div>
             </div>
           ))}

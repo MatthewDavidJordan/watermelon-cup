@@ -13,31 +13,23 @@ export default function useLeagueStats(leagueId) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log('useLeagueStats effect triggered, leagueId =', leagueId);
     if (!leagueId) return;
     let mounted = true;
 
     async function fetchStats() {
       setLoading(true);
       setError(null);
-      console.log('useLeagueStats fetchStats start for league', leagueId);
       try {
         const snap = await getDocs(collection(db, 'leagues', leagueId, 'matches'));
-        console.log('useLeagueStats fetched matches count:', snap.size);
         const stats = {};
         snap.docs.forEach(doc => {
-          console.log('useLeagueStats processing match', doc.id, doc.data());
           const m = doc.data();
           const rawStatus = m.status;
-          // only skip when a status exists and isn’t exactly 'completed' (case-insensitive)
           if (rawStatus && String(rawStatus).toLowerCase() !== 'completed') {
-            console.log(' skipped (status =', rawStatus, ')');
             return;
           }
-          // parse scores as numbers
           const homeScore = Number(m.homeScore);
           const awayScore = Number(m.awayScore);
-          // guard against missing team IDs
           const teamsToCount = [
             { id: m.homeTeamId, gf: homeScore, ga: awayScore },
             { id: m.awayTeamId, gf: awayScore, ga: homeScore }
@@ -51,20 +43,12 @@ export default function useLeagueStats(leagueId) {
             if (gf > ga) stats[id].wins++;
             else if (gf < ga) stats[id].losses++;
             else stats[id].draws++;
-            console.log('useLeagueStats updated stats', id, stats[id]);
           });
         });
         if (mounted) {
-          console.log('useLeagueStats statsByTeam:', stats);
-          Object.entries(stats).forEach(([teamId, s]) => {
-            console.log(
-              `Team ${teamId} -> wins: ${s.wins}, draws: ${s.draws}, losses: ${s.losses}, GF: ${s.goalsFor}, GA: ${s.goalsAgainst}`
-            );
-          });
           setStatsByTeam(stats);
         }
       } catch (err) {
-        console.error('useLeagueStats error:', err);
         if (mounted) setError(err);
       } finally {
         if (mounted) setLoading(false);
