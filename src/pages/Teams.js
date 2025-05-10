@@ -3,10 +3,19 @@ import { db } from "../firebase/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 // import { Link } from "react-router-dom";
 import "../styles/teams.css";
+import useLeagueStats from "../hooks/useLeagueStats";
 
 export function Teams() {
   const [teams, setTeams] = useState([]);
   const [expandedTeams, setExpandedTeams] = useState({});
+  const [leagueId, setLeagueId] = useState(null);
+  const { statsByTeam, loading: statsLoading, error: statsError } = useLeagueStats(leagueId);
+
+  useEffect(() => {
+    if (!statsLoading && !statsError) {
+      console.log('statsByTeam (after fetch):', statsByTeam);
+    }
+  }, [statsByTeam, statsLoading, statsError]);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -17,6 +26,7 @@ export function Teams() {
         const watermelonCupLeague = leaguesSnapshot.docs.find(doc => doc.data().name === "Watermelon Cup 2024");
 
         if (watermelonCupLeague) {
+          setLeagueId(watermelonCupLeague.id);
           // Query the teams collection within the found league document
           const teamsCollection = collection(db, 'leagues', watermelonCupLeague.id, 'teams');
           const teamsSnapshot = await getDocs(teamsCollection);
@@ -66,6 +76,9 @@ export function Teams() {
     fetchTeams();
   }, []);
 
+  if (statsLoading) return <p>Loading…</p>;
+  if (statsError) return <p>Error: {statsError.message}</p>;
+
   return (
     <div className="teams-page">
       {/* Hero section */}
@@ -99,19 +112,19 @@ export function Teams() {
 
                 <div className="team-stats">
                   <div className="stat-item">
-                    <span className="stat-value">{team.wins || 0}</span>
+                    <span className="stat-value">{statsByTeam[team.id]?.wins || 0}</span>
                     <span className="stat-label">Wins</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-value">{team.draws || 0}</span>
+                    <span className="stat-value">{statsByTeam[team.id]?.draws || 0}</span>
                     <span className="stat-label">Draws</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-value">{team.losses || 0}</span>
+                    <span className="stat-value">{statsByTeam[team.id]?.losses || 0}</span>
                     <span className="stat-label">Losses</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-value">{team.goalsFor || 0}</span>
+                    <span className="stat-value">{statsByTeam[team.id]?.goalsFor || 0}</span>
                     <span className="stat-label">GF</span>
                   </div>
                 </div>
