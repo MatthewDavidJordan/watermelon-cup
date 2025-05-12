@@ -38,7 +38,12 @@ export function Teams() {
             // Fetch player nicknames based on player emails
             const playerDetails = teamData.players ? await fetchPlayerDetails(teamData.players) : [];
 
-            return { id: teamDoc.id, ...teamData, players: playerDetails };
+            return { 
+              id: teamDoc.id, 
+              ...teamData, 
+              color: teamData.color || null,
+              players: playerDetails 
+            };
           }));
 
           setTeams(teamsList);
@@ -96,16 +101,24 @@ export function Teams() {
         <div className="teams-grid">
           {teams.map((team) => (
             <div key={team.id} className="team-card">
-              <div className="team-color-bar" style={{ backgroundColor: team.name === "Brazil" ? "#FFDF00" : 
-                                                                       team.name === "North Macedonia" ? "#D20000" :
-                                                                       team.name === "USA" ? "#3C3B6E" :
-                                                                       team.name === "Nigeria" ? "#008751" :
-                                                                       team.name === "Ireland" ? "#169B62" :
-                                                                       team.name === "Israel" ? "#0038B8" : "#22c55e" }} />
+              <div className="team-color-bar" style={{ backgroundColor: team.color ? `#${team.color}` : "#22c55e" }} />
               <div className="team-card-content">
                 <div className="team-header">
                   <div className="team-flag-container" style={{ backgroundColor: "white" }}>
-                    {/* Blank white square instead of image */}
+                    {team.logo ? (
+                      <img 
+                        src={team.logo} 
+                        alt={`${team.name} logo`} 
+                        className="team-flag" 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                          e.target.parentNode.style.backgroundColor = 'white';
+                        }}
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', backgroundColor: 'white' }}></div>
+                    )}
                   </div>
                   <h2 className="team-name">{team.name}</h2>
                 </div>

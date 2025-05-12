@@ -51,7 +51,8 @@ export function Matches() {
           teamsMap[doc.id] = {
             id: doc.id,
             name: teamData.name,
-            flag: null // No flag images for now
+            logo: teamData.logo || null,
+            color: teamData.color || null
           };
         });
         
@@ -110,12 +111,12 @@ export function Matches() {
             homeTeam: teamData[match.homeTeamId] || {
               id: match.homeTeamId,
               name: 'Unknown Team',
-              flag: null
+              logo: null
             },
             awayTeam: teamData[match.awayTeamId] || {
               id: match.awayTeamId,
               name: 'Unknown Team',
-              flag: null
+              logo: null
             },
             score: match.homeScore !== null && match.awayScore !== null ? {
               home: match.homeScore,
@@ -180,6 +181,44 @@ export function Matches() {
     }
   };
 
+  // Helper function to render team logo
+  const renderTeamLogo = (team) => {
+    return (
+      <div className="team-flag-container" style={{ 
+        border: '1px solid #e5e7eb',
+        margin: '0 auto 0.5rem auto',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        {team.logo ? (
+          <img 
+            src={team.logo} 
+            alt={`${team.name} logo`} 
+            style={{
+              width: '60px',
+              height: '60px',
+              objectFit: 'cover'
+            }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.style.display = 'none';
+              e.target.parentNode.style.backgroundColor = 'white';
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: '60px',
+              height: '60px',
+              backgroundColor: 'white'
+            }}
+          ></div>
+        )}
+      </div>
+    );
+  };
+
   if (loading) return <Loading />;
   if (error) return <div className="error-container">{error}</div>;
 
@@ -234,34 +273,14 @@ export function Matches() {
                           </div>
                           <div className="match-content">
                             <div className="match-teams">
-                              <div className="team-container">
-                                <div className="team-flag-container">
-                                  <div
-                                    style={{
-                                      width: '60px',
-                                      height: '60px',
-                                      backgroundColor: 'white',
-                                      border: '1px solid #e5e7eb'
-                                    }}
-                                    className="team-flag"
-                                  ></div>
-                                </div>
-                                <div className="team-name">{match.homeTeam.name}</div>
+                              <div className="team-container" style={{ textAlign: 'center' }}>
+                                {renderTeamLogo(match.homeTeam)}
+                                <div className="team-name" style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.homeTeam.name}</div>
                               </div>
                               <div className="match-score">{renderMatchScore(match.score, match.status)}</div>
-                              <div className="team-container">
-                                <div className="team-flag-container">
-                                  <div
-                                    style={{
-                                      width: '60px',
-                                      height: '60px',
-                                      backgroundColor: 'white',
-                                      border: '1px solid #e5e7eb'
-                                    }}
-                                    className="team-flag"
-                                  ></div>
-                                </div>
-                                <div className="team-name">{match.awayTeam.name}</div>
+                              <div className="team-container" style={{ textAlign: 'center' }}>
+                                {renderTeamLogo(match.awayTeam)}
+                                <div className="team-name" style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.awayTeam.name}</div>
                               </div>
                             </div>
                             {renderMatchStatus(match.status)}
@@ -294,34 +313,14 @@ export function Matches() {
                           </div>
                           <div className="match-content">
                             <div className="match-teams">
-                              <div className="team-container">
-                                <div className="team-flag-container">
-                                  <div
-                                    style={{
-                                      width: '60px',
-                                      height: '60px',
-                                      backgroundColor: 'white',
-                                      border: '1px solid #e5e7eb'
-                                    }}
-                                    className="team-flag"
-                                  ></div>
-                                </div>
-                                <div className="team-name">{match.homeTeam.name}</div>
+                              <div className="team-container" style={{ textAlign: 'center' }}>
+                                {renderTeamLogo(match.homeTeam)}
+                                <div className="team-name" style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.homeTeam.name}</div>
                               </div>
                               <div className="match-score">{renderMatchScore(match.score, match.status)}</div>
-                              <div className="team-container">
-                                <div className="team-flag-container">
-                                  <div
-                                    style={{
-                                      width: '60px',
-                                      height: '60px',
-                                      backgroundColor: 'white',
-                                      border: '1px solid #e5e7eb'
-                                    }}
-                                    className="team-flag"
-                                  ></div>
-                                </div>
-                                <div className="team-name">{match.awayTeam.name}</div>
+                              <div className="team-container" style={{ textAlign: 'center' }}>
+                                {renderTeamLogo(match.awayTeam)}
+                                <div className="team-name" style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.awayTeam.name}</div>
                               </div>
                             </div>
                             {renderMatchStatus(match.status)}

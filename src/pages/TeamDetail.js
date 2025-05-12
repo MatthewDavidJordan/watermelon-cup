@@ -92,20 +92,12 @@ export default function TeamDetail() {
   const totalGames = teamStats.wins + teamStats.draws + teamStats.losses;
   const winRate = totalGames ? Math.round((teamStats.wins / totalGames) * 100) : 0;
   
-  // Get team color based on name for color bar
-  const getTeamColor = (name) => {
-    if (!name) return '#22c55e';
-    
-    const colors = {
-      'Brazil': '#FFDF00',
-      'North Macedonia': '#D20000',
-      'USA': '#3C3B6E',
-      'Nigeria': '#008751',
-      'Ireland': '#169B62',
-      'Israel': '#0038B8'
-    };
-    
-    return colors[name] || '#22c55e';
+  // Get team color from the team data
+  const getTeamColor = () => {
+    if (team && team.color) {
+      return `#${team.color}`;
+    }
+    return '#22c55e'; // Default color if no color is specified
   };
   
   const getMatchResult = (match) => {
@@ -138,7 +130,22 @@ export default function TeamDetail() {
           </Link>
 
           <div className="detail-header-content">
-            <div className="detail-logo"></div>
+            <div className="detail-logo">
+              {team?.logo ? (
+                <img 
+                  src={team.logo} 
+                  alt={`${team.name} logo`} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                    e.target.parentNode.style.backgroundColor = 'white';
+                  }}
+                />
+              ) : (
+                <div style={{ width: '100%', height: '100%', backgroundColor: 'white' }}></div>
+              )}
+            </div>
             <div>
               <h1 className="detail-title">{team?.name}</h1>
               <p className="detail-description">{team?.description || `${team?.name} is competing in the Watermelon Cup 2024.`}</p>
@@ -147,7 +154,7 @@ export default function TeamDetail() {
         </div>
 
         {/* Color bar */}
-        <div className="detail-color-bar" style={{ backgroundColor: getTeamColor(team?.name) }}></div>
+        <div className="detail-color-bar" style={{ backgroundColor: getTeamColor() }}></div>
       </div>
 
       <div className="detail-content">
