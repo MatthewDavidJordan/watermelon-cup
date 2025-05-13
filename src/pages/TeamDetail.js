@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import useLeagueStats from '../hooks/useLeagueStats';
 import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { ArrowLeft, Trophy, Calendar, Users } from 'lucide-react';
 import '../styles/teams.css';
+import { useAuth } from '../contexts/authContexts/firebaseAuth';
 
 export default function TeamDetail() {
   const { teamId, leagueId } = useParams();
@@ -15,6 +16,15 @@ export default function TeamDetail() {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { currentUser, userLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  
+  // Check if user is logged in
+  useEffect(() => {
+    if (!userLoggedIn || !currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, userLoggedIn, navigate]);
 
   useEffect(() => {
     if (!leagueId || !teamId) return;

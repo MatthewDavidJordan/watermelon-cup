@@ -4,6 +4,8 @@ import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { Loading } from '../components/Loading';
 import '../styles/standings.css';
 import useLeagueStats from '../hooks/useLeagueStats';
+import { useAuth } from '../contexts/authContexts/firebaseAuth';
+import { useNavigate } from 'react-router-dom';
 
 export function Standings() {
   const [leagueId, setLeagueId] = useState(null);
@@ -11,6 +13,15 @@ export function Standings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { statsByTeam, loading: statsLoading, error: statsError } = useLeagueStats(leagueId);
+  const { currentUser, userLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  
+  // Check if user is logged in
+  useEffect(() => {
+    if (!userLoggedIn || !currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, userLoggedIn, navigate]);
 
   // Fetch the league ID for "Watermelon Cup 2024"
   useEffect(() => {
@@ -112,17 +123,7 @@ export function Standings() {
     });
   };
 
-  // Helper function to render form indicators
-  const renderFormIndicator = (result) => {
-    if (result === "W") {
-      return <span className="form-indicator form-win">W</span>;
-    } else if (result === "D") {
-      return <span className="form-indicator form-draw">D</span>;
-    } else if (result === "L") {
-      return <span className="form-indicator form-loss">L</span>;
-    }
-    return null;
-  };
+  // Form indicators functionality removed as it's not currently being used
 
   // Calculate top scoring teams
   const getTopScoringTeams = (standings, limit = 5) => {

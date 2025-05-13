@@ -1,15 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import "../styles/teams.css";
 import useLeagueStats from "../hooks/useLeagueStats";
+import { useAuth } from '../contexts/authContexts/firebaseAuth';
 
 export function Teams() {
   const [teams, setTeams] = useState([]);
   const [expandedTeams, setExpandedTeams] = useState({});
   const [leagueId, setLeagueId] = useState(null);
   const { statsByTeam, loading: statsLoading, error: statsError } = useLeagueStats(leagueId);
+  const { currentUser, userLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  
+  // Check if user is logged in
+  useEffect(() => {
+    if (!userLoggedIn || !currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, userLoggedIn, navigate]);
 
   useEffect(() => {
     if (!statsLoading && !statsError) {

@@ -4,6 +4,7 @@ import { Home } from './pages/Home';
 import { Teams } from './pages/Teams';
 import { Standings } from './pages/Standings';
 import { Matches } from './pages/Matches';
+import { UploadScores } from './pages/UploadScores';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Settings } from './pages/Settings';
@@ -32,6 +33,7 @@ function App() {
         <Route path="/signup" element={<Signup/>} />
         <Route path="/update-profile" element={<UpdateProfile/>} />
         <Route path="/teams/:teamId/:leagueId" element={<TeamDetail/>} />
+        <Route path="/upload_scores" element={<UploadScores/>} />
       </Routes>
       <Footer/>
     </AuthProvider>

@@ -3,6 +3,8 @@ import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { Loading } from '../components/Loading';
 import '../styles/matches.css';
+import { useAuth } from '../contexts/authContexts/firebaseAuth';
+import { useNavigate } from 'react-router-dom';
 
 export function Matches() {
   const [activeWeek, setActiveWeek] = useState(1);
@@ -11,6 +13,15 @@ export function Matches() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [leagueId, setLeagueId] = useState(null);
+  const { currentUser, userLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  
+  // Check if user is logged in
+  useEffect(() => {
+    if (!userLoggedIn || !currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, userLoggedIn, navigate]);
 
   useEffect(() => {
     // Fetch the league with name "Watermelon Cup 2024"
