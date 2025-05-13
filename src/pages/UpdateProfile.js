@@ -1,108 +1,127 @@
-import React, { useRef, useState, useEffect } from "react"
-import { Container, Form, Button, Card, Alert } from "react-bootstrap"
-import { Link, useNavigate } from "react-router-dom"
+import React, { useRef, useState, useEffect } from "react";
+import { Form } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
 import { updatePass, updateEmailAddress } from "../firebase/auth";
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
+import { tailspin } from 'ldrs';
+import "../styles/auth.css";
 
-import { tailspin } from 'ldrs'
-
-tailspin.register()
+tailspin.register();
 
 export const UpdateProfile = () => {
-  const emailRef = useRef()
-  const passwordRef = useRef()
-  const passwordConfirmRef = useRef()
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
+  const emailRef = useRef();
+  const passwordRef = useRef();
+  const passwordConfirmRef = useRef();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const { currentUser, userLoggedIn } = useAuth()
+  const { currentUser, userLoggedIn } = useAuth();
 
   useEffect(() => {
-    if (!userLoggedIn) navigate("/login")
-  }, [userLoggedIn, navigate])
+    if (!userLoggedIn) navigate("/login");
+  }, [userLoggedIn, navigate]);
 
   function handleSubmit(e) {
-    e.preventDefault()
+    e.preventDefault();
     if (passwordRef.current.value !== passwordConfirmRef.current.value) {
-      return setError("Passwords do not match")
+      return setError("Passwords do not match");
     }
 
-    const promises = []
-    setLoading(true)
-    setError("")
+    const promises = [];
+    setLoading(true);
+    setError("");
 
     if (emailRef.current.value !== currentUser.email) {
-      promises.push(updateEmailAddress(emailRef.current.value))
+      promises.push(updateEmailAddress(emailRef.current.value));
     }
     if (passwordRef.current.value) {
-      promises.push(updatePass(passwordRef.current.value))
+      promises.push(updatePass(passwordRef.current.value));
     }
 
     Promise.all(promises)
       .then(() => {
-        navigate("/")
+        navigate("/");
       })
       .catch(() => {
-        setError("Failed to update account")
+        setError("Failed to update account");
       })
       .finally(() => {
-        setLoading(false)
-      })
+        setLoading(false);
+      });
   }
 
   return (
-    <Container
-      className="d-flex flex-row flex-wrap justify-content-center align-items-center"
-      style={{ minHeight: "100vh", maxWidth: "100%", padding: 0}}
-    >
-      <div className="w-100" style={{ maxWidth: "400px" }}>
-        <Card>
-          <Card.Body>
-            <h2 className="text-center mb-4">Update Profile</h2>
-            {error && <Alert variant="danger">{error}</Alert>}
+    <div className="auth-page">
+      {/* Hero section */}
+      <div className="auth-hero">
+        <div className="auth-hero-container">
+          <h1 className="auth-hero-title">Update Your Profile</h1>
+          <p className="auth-hero-description">
+            Manage your account settings and credentials
+          </p>
+        </div>
+      </div>
+
+      {/* Auth container */}
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-card-content">
+            <h2 className="auth-form-title">Update Profile</h2>
+            
+            {error && <div className="auth-alert">{error}</div>}
+            
             <Form onSubmit={handleSubmit}>
-              <Form.Group id="email">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  ref={emailRef}
-                  required
+              <div className="auth-form-group">
+                <label className="auth-form-label">Email</label>
+                <input 
+                  type="email" 
+                  className="auth-form-control" 
+                  ref={emailRef} 
                   defaultValue={currentUser.email}
+                  required 
                 />
-              </Form.Group>
-              <Form.Group id="password">
-                <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  ref={passwordRef}
-                  placeholder="Leave blank to keep the same"
+              </div>
+              
+              <div className="auth-form-group">
+                <label className="auth-form-label">Password</label>
+                <input 
+                  type="password" 
+                  className="auth-form-control" 
+                  ref={passwordRef} 
+                  placeholder="Leave blank to keep the same" 
                 />
-              </Form.Group>
-              <Form.Group id="password-confirm" className="mb-4">
-                <Form.Label>Password Confirmation</Form.Label>
-                <Form.Control
-                  type="password"
-                  ref={passwordConfirmRef}
-                  placeholder="Leave blank to keep the same"
+              </div>
+              
+              <div className="auth-form-group">
+                <label className="auth-form-label">Confirm Password</label>
+                <input 
+                  type="password" 
+                  className="auth-form-control" 
+                  ref={passwordConfirmRef} 
+                  placeholder="Leave blank to keep the same" 
                 />
-              </Form.Group>
-              <Button disabled={loading} className="w-100" type="submit">
+              </div>
+              
+              <button 
+                type="submit" 
+                className="auth-btn" 
+                disabled={loading}
+              >
                 {loading ? (
                   <l-tailspin size="25" stroke="5" speed="0.9" color="white"></l-tailspin>
                 ) : (
-                  <>
-                    Update
-                  </>
+                  "Update Profile"
                 )}
-              </Button>
+              </button>
+              
+              <div className="auth-links">
+                <Link to="/" className="auth-link">Cancel and return to home</Link>
+              </div>
             </Form>
-          </Card.Body>
-        </Card>
-        <div className="w-100 text-center mt-2">
-          <Link to="/">Cancel</Link>
+          </div>
         </div>
       </div>
-    </Container>
-  )
+    </div>
+  );
 }

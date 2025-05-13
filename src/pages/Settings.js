@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react"
-import { Container, Card, Button, Alert } from "react-bootstrap"
-import { useNavigate } from "react-router-dom"
-import { Link } from "react-router-dom"
-import { auth, db } from "../firebase/firebase"
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { auth, db } from "../firebase/firebase";
 import { doSignOut } from "../firebase/auth";
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
 import { doc, getDoc } from 'firebase/firestore';
+import "../styles/auth.css";
 
 export const Settings = () => {
   const [error, setError] = useState("");
@@ -60,39 +59,58 @@ export const Settings = () => {
   }, [userLoggedIn]);
 
   return (
-    <Container
-      className="d-flex flex-column justify-content-center align-items-center"
-      style={{ minHeight: "100vh", maxWidth: "100%", padding: 0}}
-    >
-      <div className="w-100" style={{ maxWidth: "400px" }}>
-        <Card>
-          <Card.Body>
-            <h2 className="text-center mb-4">Profile</h2>
-            {error && <Alert variant="danger">{error}</Alert>}
-            <Card.Text>
-              <strong>Email: </strong> 
-              {currentUser.email}
-            </Card.Text>
-            <Card.Text>
-            {team ? (
-              <>
-                <strong>Team:</strong> {team}
-              </>
-            ) : (
-              <p>You're currently not on a Watermelon Cup Team for the summer of 2025. If you haven't registered please register from the home page.</p>
-            )}
-            </Card.Text>
-            <Link to="/update-profile" className="btn btn-primary w-100 mt-3">
-              Update Profile
-            </Link>
-          </Card.Body>
-        </Card>
-        <div className="w-100 text-center mt-2">
-          <Button variant="link" onClick={handleLogout}>
-            Log Out
-          </Button>
+    <div className="auth-page">
+      {/* Hero section */}
+      <div className="auth-hero">
+        <div className="auth-hero-container">
+          <h1 className="auth-hero-title">Account Settings</h1>
+          <p className="auth-hero-description">
+            Manage your profile and account preferences
+          </p>
         </div>
       </div>
-    </Container>
+
+      {/* Auth container */}
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-card-content">
+            <h2 className="auth-form-title">Your Profile</h2>
+            
+            {error && <div className="auth-alert">{error}</div>}
+            
+            <div className="profile-info">
+              <div className="profile-item">
+                <div className="profile-label">Email</div>
+                <div className="profile-value">{currentUser.email}</div>
+              </div>
+              
+              <div className="profile-item">
+                <div className="profile-label">Team Status</div>
+                <div className="profile-value">
+                  {team ? (
+                    <span className="team-badge">{team}</span>
+                  ) : (
+                    <span className="no-team-message">
+                      You're currently not on a Watermelon Cup Team for the summer of 2025. 
+                      If you haven't registered please register from the home page.
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="profile-actions">
+              <Link to="/update-profile" className="auth-btn" style={{ textDecoration: 'none', textAlign: 'center' }}>
+                Update Profile
+              </Link>
+              
+              <button onClick={handleLogout} className="auth-btn auth-btn-secondary" style={{ marginTop: '1rem' }}>
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
