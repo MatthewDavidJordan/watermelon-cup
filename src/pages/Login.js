@@ -67,7 +67,7 @@ export const Login = () => {
         <div className="auth-hero-container">
           <h1 className="auth-hero-title">Welcome to Watermelon Cup</h1>
           <p className="auth-hero-description">
-            Sign in to access your account and the league pages
+            Sign in to access your account and league pages
           </p>
         </div>
       </div>

@@ -19,7 +19,7 @@ export function Standings() {
   // Check if user is logged in
   useEffect(() => {
     if (!userLoggedIn || !currentUser) {
-      navigate('/');
+      navigate('/login');
     }
   }, [currentUser, userLoggedIn, navigate]);
 
