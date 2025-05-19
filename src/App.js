@@ -15,6 +15,7 @@ import { UpdateProfile } from './pages/UpdateProfile';
 import { MainNavigation } from './components/main-navigation';
 import { Footer } from './components/footer';
 import TeamDetail from './pages/TeamDetail';
+import { Draft } from './pages/Draft';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
         <Route path="/update-profile" element={<UpdateProfile/>} />
         <Route path="/teams/:teamId/:leagueId" element={<TeamDetail/>} />
         <Route path="/upload_scores" element={<UploadScores/>} />
+        <Route path="/draft" element={<Draft/>} />
       </Routes>
       <Footer/>
     </AuthProvider>

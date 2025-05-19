@@ -44,13 +44,24 @@ export const Home = () => {
         <div className="hero-content">
           <h1>Watermelon Cup 2025</h1>
           <CountdownTimer targetDate="2025-07-09T18:00:00-04:00" />
-          {(!userLoggedIn || !registered) && (
-            <div className="hero-cta">
-              <Link to={userLoggedIn ? "/register" : "/login"} className="btn-register">
-                {userLoggedIn ? 'Register Now' : 'Login to Register'}
-              </Link>
-            </div>
-          )}
+          
+          <div style={{ height: '120px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+            {(!userLoggedIn || !registered) ? (
+              <div className="hero-cta">
+                <Link to={userLoggedIn ? "/register" : "/login"} className="btn-register">
+                  {userLoggedIn ? 'Register Now' : 'Login to Register'}
+                </Link>
+              </div>
+            ) : (
+              <div className="registration-badge" style={{ display: 'flex', alignItems: 'center', backgroundColor: '#00a651', borderRadius: '50px', padding: '0.5rem 1.5rem', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'white', marginRight: '0.75rem', strokeWidth: 3 }}>
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span style={{ color: 'white', fontWeight: 600, fontSize: '1rem' }}>You're registered for the 2025 Watermelon Cup!</span>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
