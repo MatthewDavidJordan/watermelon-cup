@@ -10,23 +10,32 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/firebase';
 
 import { useAuth } from '../contexts/authContexts/firebaseAuth';
+import { Loading } from '../components/Loading';
 
 export const Home = () => {
 
   const { userLoggedIn } = useAuth();
 
   const [registered, setRegistered] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
       const checkUserRegistered = async () => {
         if (userLoggedIn && auth.currentUser) {
-          const userRef = doc(db, 'users', auth.currentUser.uid);
-          const userDoc = await getDoc(userRef);
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            setRegistered(userData.registered2025);
-          } else {
-            setRegistered(false);
+          setLoading(true);
+          try {
+            const userRef = doc(db, 'users', auth.currentUser.uid);
+            const userDoc = await getDoc(userRef);
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              setRegistered(userData.registered2025);
+            } else {
+              setRegistered(false);
+            }
+          } catch (error) {
+            console.error('Error checking registration status:', error);
+          } finally {
+            setLoading(false);
           }
         } else {
           // User is not logged in so don't tell them to register
@@ -36,6 +45,10 @@ export const Home = () => {
     
       checkUserRegistered();
     }, [userLoggedIn]);
+  
+  if (loading) {
+    return <Loading />;
+  }
   
   return (
     <main className="home-page">

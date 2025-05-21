@@ -6,6 +6,7 @@ import { db } from '../firebase/firebase';
 import { ArrowLeft, Trophy, Calendar, Users } from 'lucide-react';
 import '../styles/teams.css';
 import { useAuth } from '../contexts/authContexts/firebaseAuth';
+import { Loading } from '../components/Loading';
 
 export default function TeamDetail() {
   const { teamId, leagueId } = useParams();
@@ -106,7 +107,7 @@ export default function TeamDetail() {
     fetchData();
   }, [leagueId, teamId]);
 
-  if (loading || statsLoading) return <div className="detail-page"><p className="p-4">Loading…</p></div>;
+  if (loading || statsLoading) return <Loading />;
   if (error || statsError) return <div className="detail-page"><p className="p-4">Error: {(error || statsError).message}</p></div>;
 
   const teamStats = statsByTeam[teamId] || { wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 };

@@ -1,11 +1,21 @@
 import React from 'react';
+import { Ring2 } from 'ldrs/react';
+import 'ldrs/react/Ring2.css';
+import '../styles/loading.css';
 
 export function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-500 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-        <p className="mt-4 text-gray-600">Loading matches...</p>
+    <div className="loading-container">
+      <div className="loading-content">
+        <Ring2
+          size="40"
+          stroke="5"
+          strokeLength="0.25"
+          bgOpacity="0.1"
+          speed="0.8"
+          color="#22c55e" // Using the green theme color
+        />
+        <p className="loading-text">Loading</p>
       </div>
     </div>
   );

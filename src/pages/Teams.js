@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import "../styles/teams.css";
 import useLeagueStats from "../hooks/useLeagueStats";
 import { useAuth } from '../contexts/authContexts/firebaseAuth';
+import { Loading } from '../components/Loading';
 
 export function Teams() {
   const [teams, setTeams] = useState([]);
@@ -91,7 +92,7 @@ export function Teams() {
     fetchTeams();
   }, []);
 
-  if (statsLoading) return <p>Loading…</p>;
+  if (statsLoading) return <Loading />;
   if (statsError) return <p>Error: {statsError.message}</p>;
 
   return (

@@ -4,11 +4,13 @@ import { auth, db } from "../firebase/firebase";
 import { doSignOut } from "../firebase/auth";
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
 import { doc, getDoc } from 'firebase/firestore';
+import { Loading } from '../components/Loading';
 import "../styles/auth.css";
 
 export const Settings = () => {
   const [error, setError] = useState("");
   const [team, setTeam] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { currentUser, userLoggedIn } = useAuth();
 
   const navigate = useNavigate();
@@ -42,21 +44,30 @@ export const Settings = () => {
   useEffect(() => {
     const fetchUserTeam = async () => {
       if (userLoggedIn && auth.currentUser) {
-        const userRef = doc(db, 'users', auth.currentUser.uid);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setTeam(userData.currentTeam || null);
-        } else {
-          setTeam(null);
+        setLoading(true);
+        try {
+          const userRef = doc(db, 'users', auth.currentUser.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setTeam(userData.currentTeam || null);
+          } else {
+            setTeam(null);
+          }
+        } catch (error) {
+          console.error('Error fetching user team:', error);
+        } finally {
+          setLoading(false);
         }
-      } else {
-        setTeam(null);
       }
     };
-
+    
     fetchUserTeam();
   }, [userLoggedIn]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="auth-page">
