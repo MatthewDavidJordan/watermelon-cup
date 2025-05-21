@@ -1,4 +1,5 @@
-import React, { useState , useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
+import '../styles/Home.css';
 
 import { Carousel } from "../components/carousel"
 import { CountdownTimer } from "../components/countdown-timer"
@@ -45,7 +46,7 @@ export const Home = () => {
           <h1>Watermelon Cup 2025</h1>
           <CountdownTimer targetDate="2025-07-09T18:00:00-04:00" />
           
-          <div style={{ height: '120px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div className="hero-content-container">
             {(!userLoggedIn || !registered) ? (
               <div className="hero-cta">
                 <Link to={userLoggedIn ? "/register" : "/login"} className="btn-register">
@@ -53,12 +54,12 @@ export const Home = () => {
                 </Link>
               </div>
             ) : (
-              <div className="registration-badge" style={{ display: 'flex', alignItems: 'center', backgroundColor: '#00a651', borderRadius: '50px', padding: '0.5rem 1.5rem', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'white', marginRight: '0.75rem', strokeWidth: 3 }}>
+              <div className="hero-registration-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
-                <span style={{ color: 'white', fontWeight: 600, fontSize: '1rem' }}>You're registered for the 2025 Watermelon Cup!</span>
+                <span>You're registered for the 2025 Watermelon Cup!</span>
               </div>
             )}
           </div>
@@ -70,7 +71,7 @@ export const Home = () => {
         <div className="container">
           <div className="section-header">
             <h2>League Information</h2>
-            <p>Stay updated with the latest information about the Watermelon Cup 2025 season.</p>
+            <p className="league-info-subtitle">Stay updated with the latest information about the Watermelon Cup 2025 season.</p>
           </div>
 
           <div className="info-cards">
