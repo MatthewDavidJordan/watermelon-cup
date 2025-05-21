@@ -147,7 +147,7 @@ export default function TeamDetail() {
       <div className="detail-header">
         <div className="detail-header-container">
           <Link to="/teams" className="detail-back-link">
-            <ArrowLeft size={16} style={{marginRight: '8px'}} />
+            <ArrowLeft size={16} />
             Back to all teams
           </Link>
 
@@ -157,7 +157,7 @@ export default function TeamDetail() {
                 <img 
                   src={team.logo} 
                   alt={`${team.name} logo`} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.style.display = 'none';
@@ -165,7 +165,7 @@ export default function TeamDetail() {
                   }}
                 />
               ) : (
-                <div style={{ width: '100%', height: '100%', backgroundColor: 'white' }}></div>
+                <div></div>
               )}
             </div>
             <div>
@@ -216,7 +216,7 @@ export default function TeamDetail() {
                   </div>
                 )}
 
-                <div style={{overflowX: 'auto'}}>
+                <div className="detail-table-container">
                   <table className="detail-squad-table">
                     <thead>
                       <tr>
@@ -234,7 +234,7 @@ export default function TeamDetail() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="2" style={{textAlign: 'center', padding: '1rem'}}>No players found</td>
+                          <td colSpan="2" className="detail-squad-table-empty">No players found</td>
                         </tr>
                       )}
                     </tbody>
@@ -283,7 +283,7 @@ export default function TeamDetail() {
             </div>
 
             {/* Team stats card */}
-            <div className="detail-card" style={{marginTop: '2rem'}}>
+            <div className="detail-card detail-card-stats">
               <div className="detail-card-header">
                 <Trophy size={20} className="detail-card-icon" />
                 <h2 className="detail-card-title">Team Stats</h2>

@@ -234,37 +234,14 @@ export function UploadScores() {
   // Helper function to render team logo
   const renderTeamLogo = (team) => {
     return (
-      <div className="team-flag-container" style={{ 
-        border: '1px solid #e5e7eb',
-        margin: '0 auto 0.5rem auto',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
+      <div className="team-flag-container">
         {team.logo ? (
           <img 
             src={team.logo} 
             alt={`${team.name} logo`} 
-            style={{
-              width: '60px',
-              height: '60px',
-              objectFit: 'cover'
-            }}
           />
         ) : (
-          <div 
-            style={{
-              width: '60px',
-              height: '60px',
-              backgroundColor: team.color || '#f3f4f6',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              fontSize: '1.5rem',
-              fontWeight: 'bold',
-              color: '#fff'
-            }}
-          >
+          <div style={{ backgroundColor: team.color || '#f3f4f6' }}>
             {team.name ? team.name.charAt(0) : '?'}
           </div>
         )}

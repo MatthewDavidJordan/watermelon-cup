@@ -1,3 +1,49 @@
+/* Team and Match Styling */
+.team-flag-container {
+  border: 1px solid #e5e7eb;
+  margin: 0 auto 0.5rem auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.team-flag-container img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+}
+
+.team-flag-container div {
+  width: 60px;
+  height: 60px;
+  background-color: #f3f4f6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.team-container {
+  text-align: center;
+}
+
+.team-name {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.original-score {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Score Input Styling */
 .score-input-container {
   display: flex;
   align-items: center;

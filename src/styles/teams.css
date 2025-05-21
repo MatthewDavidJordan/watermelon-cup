@@ -92,6 +92,19 @@
   overflow: hidden;
   flex-shrink: 0;
   border: 1px solid #e5e7eb;
+  background-color: white;
+}
+
+.team-flag-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-flag-container div {
+  width: 100%;
+  height: 100%;
+  background-color: white;
 }
 
 .team-flag {
@@ -186,6 +199,47 @@
 .view-details-button:focus {
   outline: 2px solid #22c55e;
   outline-offset: 2px;
+}
+
+.view-details-button {
+  cursor: pointer;
+}
+
+/* Player tag variations */
+.player-tag-show-more {
+  cursor: pointer;
+  background-color: #e2f5ea;
+  color: #16a34a;
+}
+
+.player-tag-show-less {
+  cursor: pointer;
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Team detail styles */
+.detail-back-link svg {
+  margin-right: 8px;
+}
+
+.detail-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-squad-table-empty {
+  text-align: center;
+  padding: 1rem;
+}
+
+.detail-table-container {
+  overflow-x: auto;
+}
+
+.detail-card-stats {
+  margin-top: 2rem;
 }
 
 .stats-grid {

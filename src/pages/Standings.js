@@ -209,7 +209,7 @@ export function Standings() {
                     <td>{index + 1}</td>
                     <td>
                       <div className="team-cell">
-                        <div className="team-flag-container" style={{ backgroundColor: "white" }}>
+                        <div className="team-flag-container">
                           {team.logo ? (
                             <img
                               src={team.logo}
@@ -222,7 +222,7 @@ export function Standings() {
                               }}
                             />
                           ) : (
-                            <div style={{ width: '100%', height: '100%', backgroundColor: 'white' }}></div>
+                            <div></div>
                           )}
                         </div>
                         <a href={`/teams/${team.id}/${leagueId}`} className="team-name">

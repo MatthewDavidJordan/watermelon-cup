@@ -114,7 +114,7 @@ export function Teams() {
               <div className="team-color-bar" style={{ backgroundColor: team.color ? `#${team.color}` : "#22c55e" }} />
               <div className="team-card-content">
                 <div className="team-header">
-                  <div className="team-flag-container" style={{ backgroundColor: "white" }}>
+                  <div className="team-flag-container">
                     {team.logo ? (
                       <img 
                         src={team.logo} 
@@ -127,7 +127,7 @@ export function Teams() {
                         }}
                       />
                     ) : (
-                      <div style={{ width: '100%', height: '100%', backgroundColor: 'white' }}></div>
+                      <div></div>
                     )}
                   </div>
                   <h2 className="team-name">{team.name}</h2>
@@ -162,9 +162,8 @@ export function Teams() {
                     ))}
                     {team.players && team.players.length > 5 && !expandedTeams[team.id] && (
                       <span 
-                        className="player-tag" 
+                        className="player-tag player-tag-show-more" 
                         onClick={() => setExpandedTeams({...expandedTeams, [team.id]: true})}
-                        style={{ cursor: 'pointer', backgroundColor: '#e2f5ea', color: '#16a34a' }}
                       >
                         Show +{team.players.length - 5} players
                       </span>
@@ -176,9 +175,8 @@ export function Teams() {
                     ))}
                     {team.players && expandedTeams[team.id] && (
                       <span 
-                        className="player-tag" 
+                        className="player-tag player-tag-show-less" 
                         onClick={() => setExpandedTeams({...expandedTeams, [team.id]: false})}
-                        style={{ cursor: 'pointer', backgroundColor: '#fee2e2', color: '#dc2626' }}
                       >
                         Show less
                       </span>
@@ -189,7 +187,7 @@ export function Teams() {
                 <Link
                   to={`/teams/${team.id}/${leagueId}`}
                   className="view-details-button"
-                  style={{ cursor: 'pointer' }}
+
                 >
                   View Details
                 </Link>

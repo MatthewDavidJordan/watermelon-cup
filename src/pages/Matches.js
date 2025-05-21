@@ -195,22 +195,11 @@ export function Matches() {
   // Helper function to render team logo
   const renderTeamLogo = (team) => {
     return (
-      <div className="team-flag-container" style={{ 
-        border: '1px solid #e5e7eb',
-        margin: '0 auto 0.5rem auto',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
+      <div className="team-flag-container">
         {team.logo ? (
           <img 
             src={team.logo} 
             alt={`${team.name} logo`} 
-            style={{
-              width: '60px',
-              height: '60px',
-              objectFit: 'cover'
-            }}
             onError={(e) => {
               e.target.onerror = null;
               e.target.style.display = 'none';
@@ -218,13 +207,7 @@ export function Matches() {
             }}
           />
         ) : (
-          <div
-            style={{
-              width: '60px',
-              height: '60px',
-              backgroundColor: 'white'
-            }}
-          ></div>
+          <div></div>
         )}
       </div>
     );
