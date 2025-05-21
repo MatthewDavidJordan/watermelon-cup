@@ -65,23 +65,95 @@
     font-size: 1rem;
 }
 
+
+.registration-badge.hero-registration-message svg {
+    margin-right: 0.75rem; /* Default margin */
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 @media screen and (max-width: 600px) {
-    .registration-badge {
-        padding: 0.4rem 1rem;
-    }
-    
-    .registration-badge span {
-        font-size: 0.9rem;
-    }
+    /* Styles for generic .registration-badge if needed elsewhere */
+    /* .registration-badge {} rule removed as it was empty */
+    /* .registration-badge span {} rule removed as it was empty */
     
     .registration-badge .check-icon {
         width: 20px;
         height: 20px;
+    }
+
+    /* Specific styles for the hero registration message */
+    .registration-badge.hero-registration-message {
+        max-width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0.4rem 0.8rem; /* Override .registration-badge padding */
+    }
+    .registration-badge.hero-registration-message span {
+        font-size: 0.85rem; /* Override .registration-badge span font-size */
+    }
+    .registration-badge.hero-registration-message svg {
+        width: 20px; 
+        height: 20px;
+        margin-right: 0.5rem; 
+    }
+}
+
+@media screen and (max-width: 400px) {
+    .registration-badge.hero-registration-message {
+        padding: 0.3rem 0.6rem;
+    }
+    .registration-badge.hero-registration-message span {
+        font-size: 0.75rem;
+    }
+    .registration-badge.hero-registration-message svg {
+        width: 18px;
+        height: 18px;
+        margin-right: 0.4rem;
+    }
+}
+
+/* League Info Section Header */
+.section-header {
+    text-align: center;
+    margin-bottom: 25px; 
+}
+
+.section-header h2 {
+    font-size: 2.2rem; 
+    margin-bottom: 0.5em;
+}
+
+.section-header p {
+    font-size: 1rem; 
+    color: #666; 
+    max-width: 650px; 
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+    padding: 0 15px; 
+}
+
+@media screen and (max-width: 768px) {
+    .section-header h2 {
+        font-size: 2rem;
+    }
+    .section-header p {
+        font-size: 0.95rem;
+        max-width: 90%; 
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .section-header h2 {
+        font-size: 1.75rem;
+    }
+    .section-header p {
+        font-size: 0.9rem;
+        padding: 0 20px; 
     }
 }
 

@@ -203,6 +203,67 @@
   text-decoration: underline;
 }
 
+/* Position selection styles */
+.position-selection {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.position-option {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid #dee2e6;
+  user-select: none;
+}
+
+.position-option:hover {
+  background-color: #e9ecef;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.position-option input[type="checkbox"] {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.position-option input[type="checkbox"]:checked + label {
+  font-weight: 600;
+  color: #28a745;
+}
+
+.position-option label {
+  margin-bottom: 0;
+  cursor: pointer;
+  flex: 1;
+}
+
+/* Style for selected positions */
+.position-option:has(input:checked) {
+  background-color: #e8f4ea;
+  border-color: #28a745;
+}
+
+/* Position error message styling */
+.position-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  text-align: left;
+  display: block;
+  white-space: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
 /* Profile styles for Settings page */
 .profile-info {
   margin-bottom: 2rem;

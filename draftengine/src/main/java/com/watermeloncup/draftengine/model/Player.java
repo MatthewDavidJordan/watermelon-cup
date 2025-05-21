@@ -1,5 +1,7 @@
 package com.watermeloncup.draftengine.model;
 
+import java.util.List;
+
 /**
  * Represents a player in the draft engine.
  */
@@ -20,9 +22,10 @@ public class Player {
     private String lastName;
 
     /**
-     * Position of the player.
+     * Position of the player. Can be a String or a List<String>.
+     * For backward compatibility, we keep this as Object type.
      */
-    private String position;
+    private Object position;
 
     /**
      * Club team of the player.
@@ -73,7 +76,7 @@ public class Player {
     /**
      * Constructor with all fields
      */
-    public Player(String id, String firstName, String lastName, String position, String clubTeam, 
+    public Player(String id, String firstName, String lastName, Object position, String clubTeam, 
                  String footPref, String graduationYear, String email, String phone, String nickname,
                  boolean registered2024, boolean registered2025) {
         this.id = id;
@@ -115,11 +118,35 @@ public class Player {
         this.lastName = lastName;
     }
     
+    /**
+     * Gets the player's position(s)
+     * @return String representation of position(s)
+     */
     public String getPosition() {
-        return position;
+        if (position == null) {
+            return null;
+        }
+        
+        // If position is a List (array in Firestore), join the elements
+        if (position instanceof List) {
+            List<?> positionList = (List<?>) position;
+            if (positionList.isEmpty()) {
+                return null;
+            }
+            return String.join(", ", positionList.stream()
+                .map(Object::toString)
+                .toArray(String[]::new));
+        }
+        
+        // Otherwise, return the string representation
+        return position.toString();
     }
     
-    public void setPosition(String position) {
+    /**
+     * Sets the player's position
+     * @param position Can be a String or a List<String>
+     */
+    public void setPosition(Object position) {
         this.position = position;
     }
     

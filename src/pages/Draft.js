@@ -1,13 +1,51 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/authContexts/firebaseAuth';
 import { useNavigate } from 'react-router-dom';
+
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import { auth, db } from '../firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import PlayerCard from '../components/PlayerCard';
 import '../styles/Draft.css';
+
+const POSITION_MAP = {
+  "Goalkeeper": "GK",
+  "Center Back": "CB",
+  "Right Back": "RB",
+  "Left Back": "LB",
+  "Defensive Mid": "DM",
+  "Center Mid": "CM",
+  "Attacking Mid": "AM",
+  "Right Wing": "RW",
+  "Left Wing": "LW",
+  "Striker": "ST"
+};
+
+const POSITION_DISPLAY_OPTIONS = Object.keys(POSITION_MAP);
+
+const RARITY_SORT_MAP = {
+  "Bronze": 1,
+  "Silver": 2,
+  "Gold": 3
+};
+
+// Helper function to determine player rarity string based on graduation year
+const getPlayerRarityByGradYear = (graduationYear) => {
+  if (!graduationYear) return "Bronze"; // Default for missing grad year, or handle as needed
+  const currentYear = new Date().getFullYear();
+  const yearsUntilGraduation = graduationYear - currentYear;
+
+  if (yearsUntilGraduation >= 2) {
+    return "Bronze"; // Younger players (e.g., Freshmen/Sophomores if current year is 2025, grad 2027+)
+  } else if (yearsUntilGraduation === 1) {
+    return "Silver"; // Next year's graduates (e.g., Juniors if current year is 2025, grad 2026)
+  } else {
+    return "Gold";   // Current year graduates or older (e.g., Seniors if current year is 2025, grad 2025 or earlier)
+  }
+};
 
 export function Draft() {
   // Get current user from auth context
@@ -28,6 +66,24 @@ export function Draft() {
   const [canBecomeCaptain, setCanBecomeCaptain] = useState(true);
   const [isCaptain, setIsCaptain] = useState(false);
   const [becomingCaptain, setBecomingCaptain] = useState(false);
+
+  // Filters State
+  const [filterOptions, setFilterOptions] = useState({ positions: POSITION_DISPLAY_OPTIONS, feet: [] });
+  const [selectedFilters, setSelectedFilters] = useState({
+    positions: new Set(), // Stores abbreviations (e.g., 'GK', 'CB')
+    feet: new Set()
+  });
+  const [raritySortOrder, setRaritySortOrder] = useState('none'); // 'none', 'descending', 'ascending'
+  const [filteredAvailablePlayers, setFilteredAvailablePlayers] = useState([]);
+  const [showPositionFilterDropdown, setShowPositionFilterDropdown] = useState(false);
+  const [showFootFilterDropdown, setShowFootFilterDropdown] = useState(false);
+
+  const positionFilterDropdownContainerRef = useRef(null);
+  const footFilterDropdownContainerRef = useRef(null);
+
+  
+  // We'll get available players and teams from the server via WebSocket
+  
   const stompClient = useRef(null);
   const timerRef = useRef(null);
 
@@ -38,6 +94,152 @@ export function Draft() {
       ...prevMessages
     ]);
   }, []);
+
+  // Effect to extract dynamic filter options (foot preference)
+  useEffect(() => {
+    if (draftState && draftState.availablePool) {
+      const allFeet = new Set();
+      draftState.availablePool.forEach(player => {
+        const footPref = player.foot || player.footPref;
+        if (footPref) {
+          allFeet.add(footPref);
+        }
+      });
+      // Keep existing positions, only update feet
+      setFilterOptions(prevOptions => ({
+        ...prevOptions,
+        feet: Array.from(allFeet).sort()
+      }));
+    }
+  }, [draftState, draftState?.availablePool]);
+
+  // Effect to apply filters and sorting
+  useEffect(() => {
+    let players = draftState?.availablePool ? [...draftState.availablePool] : []; // Create a shallow copy to sort safely
+
+    // Apply position filters (uses abbreviations)
+    if (selectedFilters.positions.size > 0) {
+      players = players.filter(p => {
+        const playerPositionsAbbr = (p.positions || (p.position ? [p.position] : [])).map(posFull => POSITION_MAP[posFull] || posFull);
+        return playerPositionsAbbr.some(abbr => selectedFilters.positions.has(abbr));
+      });
+    }
+
+    // Apply foot preference filters
+    if (selectedFilters.feet.size > 0) {
+      players = players.filter(p => {
+        const footPref = p.foot || p.footPref; // Assuming 'footPref' as a fallback, adjust if only 'foot'
+        return footPref && selectedFilters.feet.has(footPref);
+      });
+    }
+
+    // Apply rarity sort order
+    if (raritySortOrder === "descending") {
+      players.sort((a, b) => {
+        const rarityA = getPlayerRarityByGradYear(a.graduationYear);
+        const rarityB = getPlayerRarityByGradYear(b.graduationYear);
+        return (RARITY_SORT_MAP[rarityB] || 0) - (RARITY_SORT_MAP[rarityA] || 0);
+      });
+    } else if (raritySortOrder === "ascending") {
+      players.sort((a, b) => {
+        const rarityA = getPlayerRarityByGradYear(a.graduationYear);
+        const rarityB = getPlayerRarityByGradYear(b.graduationYear);
+        return (RARITY_SORT_MAP[rarityA] || 0) - (RARITY_SORT_MAP[rarityB] || 0);
+      });
+    }
+    // If raritySortOrder is 'none', players remain in the order they were after filtering (or original order if no prior sort).
+
+    console.log('[Draft] Sorting Effect - Rarity Sort Order:', raritySortOrder);
+    if (draftState?.availablePool && draftState.availablePool.length > 0) {
+      console.log('[Draft] Sorting Effect - First 3 players from availablePool (raw):', draftState.availablePool.slice(0, 3).map(p => ({ id: p.id, gradYear: p.graduationYear, name: p.firstName })));
+    }
+
+    let playersToLog = players.slice(0, 5).map(p => ({ id: p.id, gradYear: p.graduationYear, calculatedRarity: getPlayerRarityByGradYear(p.graduationYear), name: p.firstName }));
+    console.log('[Draft] Sorting Effect - Players before rarity sort (first 5):', playersToLog);
+
+    // Apply rarity sort order
+    if (raritySortOrder === "descending") {
+      players.sort((a, b) => (RARITY_SORT_MAP[b.rarity] || 0) - (RARITY_SORT_MAP[a.rarity] || 0));
+    } else if (raritySortOrder === "ascending") {
+      players.sort((a, b) => (RARITY_SORT_MAP[a.rarity] || 0) - (RARITY_SORT_MAP[b.rarity] || 0));
+    }
+
+    let sortedPlayersToLog = players.slice(0, 5).map(p => ({ id: p.id, gradYear: p.graduationYear, calculatedRarity: getPlayerRarityByGradYear(p.graduationYear), name: p.firstName }));
+    console.log('[Draft] Sorting Effect - Players after rarity sort (first 5):', sortedPlayersToLog);
+
+    setFilteredAvailablePlayers(players);
+  }, [draftState?.availablePool, selectedFilters, raritySortOrder]);
+
+  // Effect to handle clicks outside of dropdowns to close them
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        positionFilterDropdownContainerRef.current &&
+        !positionFilterDropdownContainerRef.current.contains(event.target)
+      ) {
+        setShowPositionFilterDropdown(false);
+      }
+      if (
+        footFilterDropdownContainerRef.current &&
+        !footFilterDropdownContainerRef.current.contains(event.target)
+      ) {
+        setShowFootFilterDropdown(false);
+      }
+    };
+
+    if (showPositionFilterDropdown || showFootFilterDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showPositionFilterDropdown, showFootFilterDropdown]);
+
+  // Handlers for filter changes
+  const handlePositionFilterChange = (positionDisplayName) => {
+    const positionAbbr = POSITION_MAP[positionDisplayName];
+    setSelectedFilters(prev => {
+      const newSet = new Set(prev.positions);
+      if (newSet.has(positionAbbr)) {
+        newSet.delete(positionAbbr);
+      } else {
+        newSet.add(positionAbbr);
+      }
+      return { ...prev, positions: newSet };
+    });
+  };
+
+  const handleFootFilterChange = (footValue) => {
+    setSelectedFilters(prev => {
+      const newSet = new Set(prev.feet);
+      if (newSet.has(footValue)) {
+        newSet.delete(footValue);
+      } else {
+        newSet.add(footValue);
+      }
+      return { ...prev, feet: newSet };
+    });
+  };
+
+  const handleRaritySortChange = (e) => {
+    const newSortOrder = e.target.value;
+    console.log('[Draft] Rarity sort changed to:', newSortOrder);
+    setRaritySortOrder(newSortOrder);
+  };
+
+  const togglePositionFilterDropdown = () => setShowPositionFilterDropdown(!showPositionFilterDropdown);
+  const toggleFootFilterDropdown = () => setShowFootFilterDropdown(!showFootFilterDropdown);
+
+  const handleClearFilters = () => {
+    setSelectedFilters({ positions: new Set(), feet: new Set() });
+    setRaritySortOrder('none');
+    // Optionally close dropdowns if they are open
+    setShowPositionFilterDropdown(false);
+    setShowFootFilterDropdown(false);
+  };
 
   // Check if user is logged in and registered for 2025
   useEffect(() => {
@@ -138,7 +340,8 @@ export function Draft() {
       client.subscribe('/topic/draft', (message) => {
         const payload = JSON.parse(message.body);
         setDraftState(payload);
-        addMessage('Received draft state update');
+        addMessage('Received draft state update with ' + 
+          (payload.availablePool ? payload.availablePool.length : 0) + ' available players');
       });
       
       // Subscribe to connected users updates
@@ -206,7 +409,7 @@ export function Draft() {
         addMessage(`Sent authentication info for ${currentUser.email}`);
       }
       
-      // Send a heartbeat to get initial state
+      // Send a heartbeat to get initial state including available players
       client.publish({
         destination: '/app/heartbeat',
         body: JSON.stringify({}),
@@ -328,13 +531,14 @@ export function Draft() {
       setBecomingCaptain(true);
       addMessage('Sending request to become a captain...');
       
+      // Send only the essential user identification information
+      // The backend will handle retrieving the proper name from Firebase
       stompClient.current.publish({
         destination: '/app/become-captain',
         body: JSON.stringify({
           email: currentUser.email,
-          uid: currentUser.uid,
-          firstName: currentUser.displayName ? currentUser.displayName.split(' ')[0] : '',
-          lastName: currentUser.displayName ? currentUser.displayName.split(' ').slice(1).join(' ') : ''
+          uid: currentUser.uid
+          // No need to send firstName/lastName as the backend will retrieve them from Firebase
         }),
       });
     } else {
@@ -342,7 +546,7 @@ export function Draft() {
     }
   }, [addMessage, currentUser]);
 
-  // Helper function to get initials from name
+  // Helper function to get initials from full name string
   const getInitials = (name) => {
     return name
       .split(" ")
@@ -678,42 +882,97 @@ export function Draft() {
         {/* Available players section */}
         <div className="draft-section">
           <div className="section-header">
-            <h2 className="section-title">
+            <h2 className="section-title header-title-custom">
               Available Players
-              <span className="section-count">
-                {draftState && draftState.availablePool ? draftState.availablePool.length : 0}
+              <span className="section-count header-count-custom">
+                {filteredAvailablePlayers ? filteredAvailablePlayers.length : 0}
               </span>
             </h2>
-          </div>
-          <div className="section-content">
-            {draftState && draftState.draftStarted && draftState.availablePool && draftState.availablePool.length > 0 ? (
-              <div className="players-grid">
-                {draftState.availablePool.map(player => (
-                  <div key={player.id} className="player-card">
-                    <div className="player-header">
-                      <div className="player-name">{player.firstName} {player.lastName}</div>
-                      <div className="player-nickname">"{player.nickname || player.firstName}"</div>
-                    </div>
-                    <div className="player-attributes">
-                      {player.position && (
-                        <span className="attribute-tag tag-position">{player.position}</span>
-                      )}
-                      {player.clubTeam && (
-                        <span className="attribute-tag tag-team">{player.clubTeam}</span>
-                      )}
-                      {player.footPref && (
-                        <span className="attribute-tag tag-foot">
-                          {player.footPref === 'left' ? 'Left-footed' : 'Right-footed'}
-                        </span>
-                      )}
-                    </div>
+            <div className="filter-controls-inline">
+              {/* Position Filter Dropdown */}
+              <div className="filter-dropdown-container" ref={positionFilterDropdownContainerRef}>
+                <button onClick={togglePositionFilterDropdown} className="control-button filter-button position-toggle has-dropdown-arrow">
+                  Positions
+                </button>
+                {showPositionFilterDropdown && (
+                  <div className="filter-dropdown-content position-dropdown-content">
+                    {filterOptions.positions.map(posName => (
+                      <label key={posName} className="filter-dropdown-label">
+                        <input
+                          type="checkbox"
+                          className="filter-dropdown-checkbox"
+                          checked={selectedFilters.positions.has(POSITION_MAP[posName])}
+                          onChange={(e) => {
+                            e.stopPropagation(); // Prevent dropdown from closing
+                            handlePositionFilterChange(posName);
+                          }}
+                        />
+                        <span>{posName}</span>
+                      </label>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            ) : draftState && draftState.draftStarted ? (
-              <p>No available players</p>
+
+              {/* Foot Preference Filter Dropdown */}
+              {filterOptions.feet.length > 0 && (
+                <div className="filter-dropdown-container" ref={footFilterDropdownContainerRef}>
+                  <button onClick={toggleFootFilterDropdown} className="control-button filter-button foot-toggle has-dropdown-arrow">
+                    Foot
+                  </button>
+                  {showFootFilterDropdown && (
+                    <div className="filter-dropdown-content foot-dropdown-content">
+                      {filterOptions.feet.map(foot => (
+                        <label key={foot} className="filter-dropdown-label">
+                          <input
+                            type="checkbox"
+                            className="filter-dropdown-checkbox"
+                            checked={selectedFilters.feet.has(foot)}
+                            onChange={(e) => {
+                              e.stopPropagation(); // Add stopPropagation for consistency
+                              handleFootFilterChange(foot);
+                            }}
+                          /> 
+                          <span>{foot}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Rarity Sort Dropdown */}
+              <select value={raritySortOrder} onChange={handleRaritySortChange} className="control-button filter-select-custom has-dropdown-arrow">
+                <option value="none">Sort by Rarity</option>
+                <option value="descending">Descending</option>
+                <option value="ascending">Ascending</option>
+              </select>
+              <button onClick={handleClearFilters} className="control-button clear-filters-button-custom">
+                Clear Filters
+              </button>
+            </div>
+          </div>
+          <div className="section-content section-content-large-padding">
+            
+            {draftState && draftState.availablePool && draftState.availablePool.length > 0 ? (
+              filteredAvailablePlayers.length > 0 ? (
+                <div className="players-grid">
+                  {filteredAvailablePlayers.map(player => (
+                    <PlayerCard 
+                      key={player.id} 
+                      player={player} 
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="no-players-message">
+                  No players match your current filters.
+                </div>
+              )
+            ) : connected ? (
+              <p>Waiting for player data from server...</p>
             ) : (
-              <p>Players will be available when the draft starts</p>
+              <p>Connect to the server to see available players</p>
             )}
           </div>
         </div>
@@ -738,25 +997,7 @@ export function Draft() {
                   </div>
                   <div className="players-grid">
                     {players.map(player => (
-                      <div key={player.id} className="player-card">
-                        <div className="player-header">
-                          <div className="player-name">{player.firstName} {player.lastName}</div>
-                          <div className="player-nickname">"{player.nickname || player.firstName}"</div>
-                        </div>
-                        <div className="player-attributes">
-                          {player.position && (
-                            <span className="attribute-tag tag-position">{player.position}</span>
-                          )}
-                          {player.clubTeam && (
-                            <span className="attribute-tag tag-team">{player.clubTeam}</span>
-                          )}
-                          {player.footPref && (
-                            <span className="attribute-tag tag-foot">
-                              {player.footPref === 'left' ? 'Left-footed' : 'Right-footed'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      <PlayerCard key={player.id} player={player} />
                     ))}
                   </div>
                 </div>

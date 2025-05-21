@@ -170,6 +170,13 @@
   font-weight: 600;
   color: #111827;
   text-align: center;
+  min-height: 2.8em; /* Accommodate ~2 lines (1em = font-size of element, so 1rem here). Assumes line-height around 1.4. */
+  display: flex;
+  align-items: center;    /* Vertically center the text content */
+  justify-content: center; /* Horizontally center the text content (text-align also does this) */
+  width: 100%;             /* Ensure it uses the full width of its parent (.team-container) */
+  padding: 0 0.25rem;      /* Add slight horizontal padding */
+  box-sizing: border-box;  /* Include padding in width calculation */
 }
 
 .match-score {

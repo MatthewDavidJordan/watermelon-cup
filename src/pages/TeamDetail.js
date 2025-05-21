@@ -70,12 +70,24 @@ export default function TeamDetail() {
             
             if (!userSnapshot.empty) {
               const userData = userSnapshot.docs[0].data();
+              // Handle position data which might be a string or an array
+              let positionDisplay = 'Player';
+              if (userData.position) {
+                if (Array.isArray(userData.position)) {
+                  // If it's an array, join the positions with commas
+                  positionDisplay = userData.position.join(', ');
+                } else if (typeof userData.position === 'string') {
+                  // If it's a string, use it directly
+                  positionDisplay = userData.position;
+                }
+              }
+              
               playerDetails.push({ 
                 email: email, 
                 firstName: userData.firstName || '', 
                 lastName: userData.lastName || '',
                 nickname: userData.nickname || '',
-                position: userData.position || 'Player'
+                position: positionDisplay
               });
             } else {
               playerDetails.push({ email: email, firstName: '', lastName: '', nickname: 'Unknown' });

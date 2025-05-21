@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +30,22 @@ public class DraftService {
     public DraftService(SimpMessagingTemplate broker, @Autowired(required = false) FirebaseApp fb) {
         this.broker = broker;
         this.firebaseApp = fb;
-        // Initialize with empty state - will be populated when captains join
-        this.state = createEmptyDraftState();
+        
+        // Load players from Firebase first
+        List<Player> players = loadPlayersFromFirebase();
+        logger.info("Loaded {} players during initialization", players.size());
+        
+        // Initialize with empty state but include available players
+        this.state = new DraftState(
+            null,                // No current captain
+            null,                // No next captain
+            players,             // Available player pool loaded from Firebase
+            new HashMap<>(),     // No teams
+            null,                // No expiry time
+            null,                // No last pick
+            false,               // Draft not started
+            new ArrayList<>()    // No captains
+        );
     }
 
     public synchronized void makePick(String captainId, String playerId) {
@@ -84,7 +99,8 @@ public class DraftService {
 
     @Scheduled(fixedRate = 1_000)
     void tick() {
-        if (state.pickExpiresAt().isBefore(Instant.now())) {
+        // Check if pickExpiresAt is not null before comparing
+        if (state.pickExpiresAt() != null && state.pickExpiresAt().isBefore(Instant.now())) {
             autoSkip();
         }
     }
@@ -155,23 +171,7 @@ public class DraftService {
         return captainIdList.get((currentIndex + 1) % captainIdList.size());
     }
 
-    /* helper */ 
-    /**
-     * Create an empty draft state with no captains or players
-     * @return an empty draft state
-     */
-    private DraftState createEmptyDraftState() {
-        return new DraftState(
-            null,                // No current captain
-            null,                // No next captain
-            new ArrayList<>(),   // Empty player pool
-            new HashMap<>(),     // No teams
-            null,                // No expiry time
-            null,                // No last pick
-            false,               // Draft not started
-            new ArrayList<>()    // No captains
-        );
-    }
+    // Method removed as it's no longer used
     
     /**
      * Initialize the draft with the given captains
@@ -190,8 +190,14 @@ public class DraftService {
         
         logger.info("Initializing draft with {} captains", captains.size());
         
-        // Load players from Firebase
-        List<Player> players = loadPlayersFromFirebase();
+        // Use existing players from state, or load them if needed
+        List<Player> players = state.availablePool();
+        if (players == null || players.isEmpty()) {
+            logger.info("No players in state, loading from Firebase");
+            players = loadPlayersFromFirebase();
+        } else {
+            logger.info("Using {} existing players from state", players.size());
+        }
         
         // Create teams for each captain
         Map<String, List<Player>> teams = new HashMap<>();
@@ -246,11 +252,21 @@ public class DraftService {
                           Boolean registered2025 = doc.getBoolean("registered2025");
                           boolean isRegistered2025 = (registered2025 != null) ? registered2025 : false;
                           
+                          // Get position data - could be a string or an array
+                          Object positionData = null;
+                          // Only use position data if it's an array, as per requirement
+                          if (doc.contains("position")) {
+                              Object rawPosition = doc.get("position");
+                              if (rawPosition instanceof List) {
+                                  positionData = rawPosition;
+                              }
+                          }
+                          
                           Player player = new Player(
                               doc.getId(),
                               doc.getString("firstName"),
                               doc.getString("lastName"),
-                              doc.getString("position"),
+                              positionData, // Pass the position object which could be null or a List
                               doc.getString("clubTeam"),
                               doc.getString("footPref"),
                               doc.getString("graduationYear"),
@@ -284,12 +300,13 @@ public class DraftService {
         if (players.isEmpty()) {
             System.out.println("No players loaded from Firebase, using sample data");
             // Create some sample data with the new Player structure including registration flags
-            players.add(new Player("p1", "John", "Doe", "Forward", "Team A", "right", "2024", "john@example.com", "555-1234", "Johnny", true, false));
-            players.add(new Player("p2", "Jane", "Smith", "Midfielder", "Team B", "left", "2025", "jane@example.com", "555-5678", "", true, false));
-            players.add(new Player("p3", "Mike", "Johnson", "Defender", "Team C", "right", "2023", "mike@example.com", "555-9012", "Mikey", true, false));
-            players.add(new Player("p4", "Sarah", "Williams", "Goalkeeper", "Team D", "right", "2024", "sarah@example.com", "555-3456", "", true, true));
-            players.add(new Player("p5", "David", "Brown", "Forward", "Team E", "left", "2025", "david@example.com", "555-7890", "Dave", true, true));
-            players.add(new Player("p6", "Emily", "Davis", "Midfielder", "Team F", "right", "2023", "emily@example.com", "555-2345", "", true, false));
+            // For sample data, we'll use List positions to test the array format
+            players.add(new Player("p1", "John", "Doe", Arrays.asList("ST"), "Team A", "right", "2024", "john@example.com", "555-1234", "Johnny", true, false));
+            players.add(new Player("p2", "Jane", "Smith", Arrays.asList("CM", "AM"), "Team B", "left", "2025", "jane@example.com", "555-5678", "", true, false));
+            players.add(new Player("p3", "Mike", "Johnson", Arrays.asList("CB", "RB"), "Team C", "right", "2023", "mike@example.com", "555-9012", "Mikey", true, false));
+            players.add(new Player("p4", "Sarah", "Williams", Arrays.asList("GK"), "Team D", "right", "2024", "sarah@example.com", "555-3456", "", true, true));
+            players.add(new Player("p5", "David", "Brown", Arrays.asList("ST", "RW"), "Team E", "left", "2025", "david@example.com", "555-7890", "Dave", true, true));
+            players.add(new Player("p6", "Emily", "Davis", Arrays.asList("CM", "DM"), "Team F", "right", "2023", "emily@example.com", "555-2345", "", true, false));
         }
         
         return players;

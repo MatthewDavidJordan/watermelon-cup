@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from "../firebase/firebase";
 import { tailspin } from 'ldrs';
 import "../styles/auth.css";
@@ -18,9 +18,10 @@ export const Register = () => {
   const gradYearRef = useRef();
   const clubTeamRef = useRef();
   const footRef = useRef();
-  const preferredPositionRef = useRef();
+  const [selectedPositions, setSelectedPositions] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [positionError, setPositionError] = useState("");
   const navigate = useNavigate();
 
   const { currentUser, userLoggedIn } = useAuth();
@@ -62,6 +63,27 @@ export const Register = () => {
     }
   }, [currentUser]);
 
+  // Position mapping for abbreviations
+  const positionMap = {
+    "Goalkeeper": "GK",
+    "Center Back": "CB",
+    "Right Back": "RB",
+    "Left Back": "LB",
+    "Defensive Mid": "DM",
+    "Center Mid": "CM",
+    "Attacking Mid": "AM",
+    "Right Wing": "RW",
+    "Left Wing": "LW",
+    "Striker": "ST"
+  };
+
+  // Reverse position mapping can be created if needed in the future
+  // Currently not used but kept for reference
+  // const reversePositionMap = Object.entries(positionMap).reduce((acc, [key, value]) => {
+  //   acc[value] = key;
+  //   return acc;
+  // }, {});
+
   // Sync userData into refs for autofill
   useEffect(() => {
     if (currentUser && userData && firstNameRef.current) {
@@ -77,15 +99,31 @@ export const Register = () => {
       gradYearRef.current.value = graduationYear || '';
       clubTeamRef.current.value = clubTeam || '';
       footRef.current.value = footPref || '';
-      preferredPositionRef.current.value = position || '';
+      
+      // Only autofill positions if the existing data is already an array
+      if (position && Array.isArray(position)) {
+        setSelectedPositions(position);
+      }
     }
   }, [userData, currentUser]);
 
   async function handleSubmit(e) {
     e.preventDefault();
 
+    // Validate positions (required and max 3)
+    if (selectedPositions.length === 0) {
+      setPositionError("Please select at least one position");
+      return;
+    }
+    
+    if (selectedPositions.length > 3) {
+      setPositionError("You can select a maximum of 3 positions");
+      return;
+    }
+
     try {
       setError("");
+      setPositionError("");
       setLoading(true);
       await addUserInfoToFirestore(e);
     } catch (error) {
@@ -109,8 +147,9 @@ export const Register = () => {
           graduationYear: gradYearRef.current.value,
           clubTeam: clubTeamRef.current.value,
           footPref: footRef.current.value,
-          position: preferredPositionRef.current.value,
+          position: selectedPositions, // This is already storing the abbreviations
           registered2025: true,
+          registeredFor2025SeasonAt: serverTimestamp(),
         });
         navigate("/");
       } catch (error) {
@@ -219,13 +258,13 @@ export const Register = () => {
               </div>
               
               <div className="auth-form-group">
-                <label className="auth-form-label">Club Team (if applicable)</label>
+                <label className="auth-form-label">Club Team (if none leave blank)</label>
                 <input 
                   type="text" 
                   className="auth-form-control" 
                   ref={clubTeamRef} 
                   defaultValue={userData.clubTeam || ""} 
-                  placeholder="Enter your club team" 
+                  placeholder="Leave blank if none" 
                 />
               </div>
               
@@ -245,14 +284,50 @@ export const Register = () => {
               </div>
               
               <div className="auth-form-group">
-                <label className="auth-form-label">Preferred Position(s)</label>
-                <input 
-                  type="text" 
-                  className="auth-form-control" 
-                  ref={preferredPositionRef} 
-                  defaultValue={userData.position || ""} 
-                  placeholder="Enter your preferred position(s)" 
-                />
+                <label className="auth-form-label">Preferred Position(s) (select up to 3)</label>
+                <div className="position-selection">
+                  {[
+                    "Goalkeeper", "Center Back", "Right Back", "Left Back", 
+                    "Defensive Mid", "Center Mid", "Attacking Mid", 
+                    "Right Wing", "Left Wing", "Striker"
+                  ].map((position) => {
+                    const positionId = position.replace(/\s+/g, '');
+                    const abbreviation = positionMap[position];
+                    const isSelected = selectedPositions.includes(abbreviation);
+                    
+                    return (
+                      <div 
+                        key={position} 
+                        className="position-option"
+                        onClick={() => {
+                          if (isSelected) {
+                            // Always allow deselecting
+                            setSelectedPositions(prev => prev.filter(pos => pos !== abbreviation));
+                            setPositionError("");
+                          } else {
+                            // Only allow selecting if less than 3 positions are already selected
+                            if (selectedPositions.length < 3) {
+                              setSelectedPositions(prev => [...prev, abbreviation]);
+                              setPositionError("");
+                            } else {
+                              setPositionError("Maximum of 3 positions");
+                            }
+                          }
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          id={positionId}
+                          checked={isSelected}
+                          onChange={() => {}} // Handled by parent div onClick
+                          onClick={(e) => e.stopPropagation()} // Prevent double-triggering
+                        />
+                        <label htmlFor={positionId}>{position}</label>
+                      </div>
+                    );
+                  })}
+                </div>
+                {positionError && <div className="auth-alert">{positionError}</div>}
               </div>
               
               <button 
