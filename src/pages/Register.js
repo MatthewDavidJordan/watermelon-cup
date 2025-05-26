@@ -300,17 +300,19 @@ export const Register = () => {
                         key={position} 
                         className="position-option"
                         onClick={() => {
+                          // Toggle position selection when clicking anywhere in the div
                           if (isSelected) {
                             // Always allow deselecting
-                            setSelectedPositions(prev => prev.filter(pos => pos !== abbreviation));
+                            const updatedPositions = selectedPositions.filter(pos => pos !== abbreviation);
+                            setSelectedPositions(updatedPositions);
                             setPositionError("");
                           } else {
-                            // Only allow selecting if less than 3 positions are already selected
-                            if (selectedPositions.length < 3) {
-                              setSelectedPositions(prev => [...prev, abbreviation]);
-                              setPositionError("");
+                            // Only show warning if attempting to select a 4th position
+                            if (selectedPositions.length === 3) {
+                              setPositionError("Maximum of 3 positions allowed");
                             } else {
-                              setPositionError("Maximum of 3 positions");
+                              setSelectedPositions([...selectedPositions, abbreviation]);
+                              setPositionError("");
                             }
                           }
                         }}
@@ -319,10 +321,34 @@ export const Register = () => {
                           type="checkbox"
                           id={positionId}
                           checked={isSelected}
-                          onChange={() => {}} // Handled by parent div onClick
-                          onClick={(e) => e.stopPropagation()} // Prevent double-triggering
+                          onChange={(e) => {
+                            // Prevent the event from bubbling up to the div's onClick
+                            // This prevents double-toggling when clicking directly on the checkbox
+                            e.stopPropagation();
+                            
+                            // Same logic as the div's onClick handler
+                            if (isSelected) {
+                              // Always allow deselecting
+                              const updatedPositions = selectedPositions.filter(pos => pos !== abbreviation);
+                              setSelectedPositions(updatedPositions);
+                              setPositionError("");
+                            } else {
+                              // Only show warning if attempting to select a 4th position
+                              if (selectedPositions.length === 3) {
+                                setPositionError("Maximum of 3 positions allowed");
+                              } else {
+                                setSelectedPositions([...selectedPositions, abbreviation]);
+                                setPositionError("");
+                              }
+                            }
+                          }}
                         />
-                        <label htmlFor={positionId}>{position}</label>
+                        <label 
+                          htmlFor={positionId}
+                          onClick={(e) => e.preventDefault()} // Prevent default to avoid focus issues
+                        >
+                          {position}
+                        </label>
                       </div>
                     );
                   })}
