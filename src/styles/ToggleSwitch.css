@@ -1,0 +1,108 @@
+.toggle-switch-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toggle-switch-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.toggle-switch.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toggle-switch-checkbox {
+  height: 0;
+  width: 0;
+  visibility: hidden;
+  position: absolute;
+}
+
+.toggle-switch-label-ui {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 24px;
+  margin: 0;
+}
+
+.toggle-switch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.2s ease-in-out;
+}
+
+.toggle-switch-inner:before,
+.toggle-switch-inner:after {
+  display: block;
+  float: left;
+  width: 50%;
+  height: 24px;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.toggle-switch-inner:before {
+  content: "";
+  background-color: #22c55e; /* Green for on state */
+}
+
+.toggle-switch-inner:after {
+  content: "";
+  background-color: #ef4444; /* Red for off state */
+}
+
+.toggle-switch-switch {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: 2px;
+  background: #ffffff;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 26px;
+  border-radius: 20px;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label-ui .toggle-switch-inner {
+  margin-left: 0;
+  background-color: #22c55e; /* Green when checked */
+}
+
+.toggle-switch-checkbox:not(:checked) + .toggle-switch-label-ui .toggle-switch-inner {
+  background-color: #ef4444; /* Red when not checked */
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label-ui .toggle-switch-switch {
+  right: 0px;
+  background-color: #ffffff;
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label-ui {
+  background-color: #22c55e; /* Green when checked */
+}
+
+.toggle-switch-checkbox:not(:checked) + .toggle-switch-label-ui {
+  background-color: #ef4444; /* Red when not checked */
+}
+
+.toggle-switch-checkbox:disabled + .toggle-switch-label-ui {
+  cursor: not-allowed;
+}
+
+/* Removed duplicate rule */

@@ -34,6 +34,43 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
+/* Hover glow effect */
+.fifa-card:hover {
+  box-shadow: 0 0 20px 5px rgba(34, 197, 94, 0.3);
+  position: relative;
+  z-index: 10;
+}
+
+/* Selected player card with green glow */
+.fifa-card-selected {
+  cursor: pointer;
+  position: relative;
+  z-index: 20;
+  transform: translateY(-5px);
+}
+
+/* Create a pseudo-element for the larger glow effect */
+.fifa-card-selected::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -15px;
+  border-radius: 1.5rem;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.6) 0%, rgba(34, 197, 94, 0) 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.fifa-card-selected {
+  box-shadow: 0 0 25px 10px rgba(34, 197, 94, 0.5);
+}
+
+.fifa-card-selected:hover {
+  box-shadow: 0 0 30px 15px rgba(22, 163, 74, 0.6);
+}
+
 .fifa-card-gold {
   background: linear-gradient(135deg, #f0c419 0%, #f29e18 100%);
 }

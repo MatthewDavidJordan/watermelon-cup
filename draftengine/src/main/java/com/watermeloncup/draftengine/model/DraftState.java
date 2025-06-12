@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 public record DraftState(
+    // Captain identifiers (used for internal logic)
+    String currentCaptainId,
+    String nextCaptainId,
+    // Captain names for display (used in the UI)
     String currentCaptain,
     String nextCaptain,
     List<Player> availablePool,
@@ -12,5 +16,6 @@ public record DraftState(
     Instant pickExpiresAt,
     Player lastPick,
     boolean draftStarted,
-    List<Captain> captains
+    List<Captain> captains,
+    Map<String, Boolean> autoDraftPreferences
 ) {}

@@ -9,6 +9,7 @@ import { Client } from '@stomp/stompjs';
 import { auth, db } from '../firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import PlayerCard from '../components/PlayerCard';
+import ToggleSwitch from '../components/ToggleSwitch';
 import '../styles/Draft.css';
 
 const POSITION_MAP = {
@@ -66,6 +67,10 @@ export function Draft() {
   const [canBecomeCaptain, setCanBecomeCaptain] = useState(true);
   const [isCaptain, setIsCaptain] = useState(false);
   const [becomingCaptain, setBecomingCaptain] = useState(false);
+  const [activeTeamTab, setActiveTeamTab] = useState(0); // For team tabs
+  const [selectedPlayer, setSelectedPlayer] = useState(null); // For player selection
+  const [makingPick, setMakingPick] = useState(false); // For pick in progress
+  const [autoDraftEnabled, setAutoDraftEnabled] = useState(false); // For autodraft toggle - off by default
 
   // Filters State
   const [filterOptions, setFilterOptions] = useState({ positions: POSITION_DISPLAY_OPTIONS, feet: [] });
@@ -77,6 +82,7 @@ export function Draft() {
   const [filteredAvailablePlayers, setFilteredAvailablePlayers] = useState([]);
   const [showPositionFilterDropdown, setShowPositionFilterDropdown] = useState(false);
   const [showFootFilterDropdown, setShowFootFilterDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const positionFilterDropdownContainerRef = useRef(null);
   const footFilterDropdownContainerRef = useRef(null);
@@ -113,9 +119,42 @@ export function Draft() {
     }
   }, [draftState, draftState?.availablePool]);
 
-  // Effect to apply filters and sorting
+  // Effect to check if user is a captain and handle autodraft preferences
+  React.useEffect(() => {
+    if (draftState && draftState.captains && currentUser) {
+      // Check if the current user is one of the captains
+      const userIsCaptain = draftState.captains.some(captain => captain.userId === currentUser.uid);
+      setIsCaptain(userIsCaptain);
+      
+      // If user is a captain, check for autodraft preference in server state
+      if (userIsCaptain && draftState.autoDraftPreferences) {
+        const serverAutoDraftSetting = draftState.autoDraftPreferences[currentUser.uid];
+        if (serverAutoDraftSetting !== undefined) {
+          setAutoDraftEnabled(serverAutoDraftSetting);
+        }
+      }
+    }
+  }, [draftState, currentUser]);
+
+  // Effect to apply filters, search, and sorting
   useEffect(() => {
     let players = draftState?.availablePool ? [...draftState.availablePool] : []; // Create a shallow copy to sort safely
+
+    // Apply search filter
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase().trim();
+      players = players.filter(p => {
+        const firstName = (p.firstName || '').toLowerCase();
+        const lastName = (p.lastName || '').toLowerCase();
+        const fullName = `${firstName} ${lastName}`.toLowerCase();
+        const nickname = (p.nickname || '').toLowerCase();
+        
+        return firstName.includes(query) || 
+               lastName.includes(query) || 
+               fullName.includes(query) || 
+               nickname.includes(query);
+      });
+    }
 
     // Apply position filters (uses abbreviations)
     if (selectedFilters.positions.size > 0) {
@@ -168,7 +207,12 @@ export function Draft() {
     console.log('[Draft] Sorting Effect - Players after rarity sort (first 5):', sortedPlayersToLog);
 
     setFilteredAvailablePlayers(players);
-  }, [draftState?.availablePool, selectedFilters, raritySortOrder]);
+  }, [draftState?.availablePool, selectedFilters, raritySortOrder, searchQuery]);
+  
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
 
   // Effect to handle clicks outside of dropdowns to close them
   useEffect(() => {
@@ -236,6 +280,7 @@ export function Draft() {
   const handleClearFilters = () => {
     setSelectedFilters({ positions: new Set(), feet: new Set() });
     setRaritySortOrder('none');
+    setSearchQuery('');
     // Optionally close dropdowns if they are open
     setShowPositionFilterDropdown(false);
     setShowFootFilterDropdown(false);
@@ -252,31 +297,35 @@ export function Draft() {
     const checkRegistrationStatus = async () => {
       try {
         setIsCheckingRegistration(true);
-        // Use auth.currentUser.uid as the document ID, matching the homepage approach
+        addMessage('Verifying your registration for the 2025 season...');
+        
+        // Use auth.currentUser.uid as the document ID
         const userRef = doc(db, 'users', auth.currentUser.uid);
         const userDoc = await getDoc(userRef);
         
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          // Check registered2025 field, matching how the homepage does it
-          const registered2025 = userData.registered2025 === true;
-          setIsRegisteredFor2025(registered2025);
-          
-          if (!registered2025) {
-            // User is not registered for 2025, redirect to homepage
-            addMessage('You are not registered for the 2025 season. Redirecting to registration page...');
-            setTimeout(() => navigate('/register'), 3000); // Redirect to registration page after 3 seconds
-          } else {
-            addMessage('Registration verified for 2025 season');
-          }
-        } else {
+        if (!userDoc.exists()) {
           // User document doesn't exist, redirect to registration page
-          addMessage('User profile not found. Redirecting to registration page...');
+          addMessage('User profile not found. Please complete your registration for the 2025 season.');
           setTimeout(() => navigate('/register'), 3000);
+          return;
+        }
+        
+        const userData = userDoc.data();
+        const registered2025 = userData.registered2025 === true;
+        setIsRegisteredFor2025(registered2025);
+        
+        if (!registered2025) {
+          // User is not registered for 2025, show message and redirect
+          addMessage('You need to register for the 2025 season to access the draft.');
+          addMessage('Redirecting to registration page...');
+          setTimeout(() => navigate('/register'), 3000);
+        } else {
+          addMessage('✅ Registration verified for 2025 season');
         }
       } catch (error) {
         console.error('Error checking registration status:', error);
-        addMessage('Error checking registration status. Please try again later.');
+        addMessage('❌ Error checking registration status. Please try again later.');
+        // Don't redirect on error, let the user see the error message
       } finally {
         setIsCheckingRegistration(false);
       }
@@ -340,6 +389,17 @@ export function Draft() {
       client.subscribe('/topic/draft', (message) => {
         const payload = JSON.parse(message.body);
         setDraftState(payload);
+        
+        // Check if we're a captain and update autodraft status from server
+        if (currentUser && payload.autoDraftPreferences) {
+          const serverAutoDraftSetting = payload.autoDraftPreferences[currentUser.uid];
+          if (serverAutoDraftSetting !== undefined) {
+            setAutoDraftEnabled(serverAutoDraftSetting);
+          } else {
+            // Autodraft preference is now managed by the server
+          }
+        }
+        
         addMessage('Received draft state update with ' + 
           (payload.availablePool ? payload.availablePool.length : 0) + ' available players');
       });
@@ -513,17 +573,7 @@ export function Draft() {
     };
   }, [draftState, updateTimeLeft]); // Add updateTimeLeft to dependency array
 
-  const sendHeartbeat = React.useCallback(() => {
-    if (stompClient.current && stompClient.current.connected) {
-      stompClient.current.publish({
-        destination: '/app/heartbeat',
-        body: JSON.stringify({}),
-      });
-      addMessage('Sent heartbeat request');
-    } else {
-      addMessage('Not connected to server');
-    }
-  }, [addMessage]);
+
   
   // Function to become a captain
   const becomeCaptain = React.useCallback(() => {
@@ -545,6 +595,79 @@ export function Draft() {
       addMessage('Not connected to server or not logged in');
     }
   }, [addMessage, currentUser]);
+  
+  // Toggle autodraft functionality
+  const toggleAutoDraft = React.useCallback(() => {
+    if (stompClient.current && stompClient.current.connected && currentUser) {
+      const newState = !autoDraftEnabled;
+      // Send autodraft preference to server
+      stompClient.current.publish({
+        destination: '/app/set-autodraft',
+        body: JSON.stringify({
+          captainId: currentUser.uid,
+          autoDraftEnabled: newState
+        }),
+      });
+      addMessage(`Autodraft ${newState ? 'enabled' : 'disabled'}`);
+    }
+  }, [addMessage, currentUser, autoDraftEnabled]);
+
+  // Function to make a draft pick
+  const makePick = React.useCallback(() => {
+    if (!selectedPlayer) {
+      addMessage('Please select a player first');
+      return;
+    }
+    
+    if (!draftState || !draftState.draftStarted) {
+      addMessage('Draft has not started yet');
+      return;
+    }
+    
+    if (!currentUser) {
+      addMessage('You must be logged in to make a pick');
+      return;
+    }
+    
+    // Check if it's this user's turn
+    if (currentUser.uid !== draftState.currentCaptainId) {
+      addMessage(`It's not your turn to pick. Current captain is ${draftState.currentCaptain}`);
+      return;
+    }
+    
+    if (stompClient.current && stompClient.current.connected) {
+      setMakingPick(true);
+      addMessage(`Sending pick: ${selectedPlayer.firstName} ${selectedPlayer.lastName}`);
+      
+      stompClient.current.publish({
+        destination: '/app/make-pick',
+        body: JSON.stringify({
+          captainId: currentUser.uid,
+          playerId: selectedPlayer.id
+        }),
+      });
+      
+      // Clear selection after pick is made
+      setTimeout(() => {
+        setSelectedPlayer(null);
+        setMakingPick(false);
+      }, 1000);
+    } else {
+      addMessage('Not connected to server');
+      setMakingPick(false);
+    }
+  }, [addMessage, currentUser, draftState, selectedPlayer]);
+  
+  // Function to handle player selection
+  const handlePlayerSelect = React.useCallback((player) => {
+    // Toggle selection if clicking the same player
+    if (selectedPlayer && selectedPlayer.id === player.id) {
+      setSelectedPlayer(null);
+    } else {
+      setSelectedPlayer(player);
+      addMessage(`Selected player: ${player.firstName} ${player.lastName}`);
+    }
+  }, [selectedPlayer, addMessage]);
 
   // Helper function to get initials from full name string
   const getInitials = (name) => {
@@ -706,26 +829,7 @@ export function Draft() {
                 </svg>
                 Connect
               </button>
-              <button 
-                className="control-button button-heartbeat"
-                onClick={sendHeartbeat} 
-                disabled={!connected}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"></path>
-                </svg>
-                Send Heartbeat
-              </button>
+
               <button 
                 className="control-button button-disconnect"
                 onClick={() => setShowDisconnectConfirm(true)} 
@@ -843,11 +947,25 @@ export function Draft() {
               <div className="draft-state-grid">
                 <div className="state-item">
                   <span className="state-label">Current Captain:</span>
-                  <span className="state-value captain-highlight">{draftState.currentCaptain}</span>
+                  <span className="state-value captain-highlight">
+                    {draftState.captains && draftState.currentCaptainId ? 
+                      (() => {
+                        const captain = draftState.captains.find(c => c.userId === draftState.currentCaptainId);
+                        return captain ? `${captain.firstName} ${captain.lastName}` : draftState.currentCaptainId;
+                      })() : 
+                      draftState.currentCaptain}
+                  </span>
                 </div>
                 <div className="state-item">
                   <span className="state-label">Next Captain:</span>
-                  <span className="state-value">{draftState.nextCaptain}</span>
+                  <span className="state-value">
+                    {draftState.captains && draftState.nextCaptainId ? 
+                      (() => {
+                        const captain = draftState.captains.find(c => c.userId === draftState.nextCaptainId);
+                        return captain ? `${captain.firstName} ${captain.lastName}` : draftState.nextCaptainId;
+                      })() : 
+                      draftState.nextCaptain}
+                  </span>
                 </div>
                 <div className="state-item">
                   <span className="state-label">Pick Expires At:</span>
@@ -889,6 +1007,25 @@ export function Draft() {
               </span>
             </h2>
             <div className="filter-controls-inline">
+              {/* Search Bar */}
+              <div className="search-container">
+                <input
+                  type="text"
+                  placeholder="Search by name or nickname..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="search-input"
+                />
+                {searchQuery && (
+                  <button 
+                    className="search-clear-button" 
+                    onClick={() => setSearchQuery('')}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              
               {/* Position Filter Dropdown */}
               <div className="filter-dropdown-container" ref={positionFilterDropdownContainerRef}>
                 <button onClick={togglePositionFilterDropdown} className="control-button filter-button position-toggle has-dropdown-arrow">
@@ -952,6 +1089,53 @@ export function Draft() {
               </button>
             </div>
           </div>
+          {draftState && draftState.draftStarted && (
+            <div className="draft-action-bar">
+              <div className="draft-action-bar-content">
+                <div className="draft-action-status">
+                  {currentUser && draftState.currentCaptainId === currentUser.uid ? (
+                    <div className="pick-status your-turn">It's your turn to pick!</div>
+                  ) : (
+                    <div className="pick-status waiting">{`Waiting for ${draftState.currentCaptain} to pick`}</div>
+                  )}
+                </div>
+                
+                <div className="draft-action-controls">
+                  <button 
+                    className={`make-pick-button ${currentUser && draftState.currentCaptainId === currentUser.uid ? 'active' : 'disabled'}`}
+                    onClick={makePick}
+                    disabled={!currentUser || draftState.currentCaptainId !== currentUser.uid || makingPick || !selectedPlayer}
+                  >
+                    {makingPick ? (
+                      <>
+                        <div className="button-spinner"></div>
+                        Making Pick...
+                      </>
+                    ) : (
+                      <>
+                        {selectedPlayer ? `Draft ${selectedPlayer.firstName} ${selectedPlayer.lastName}` : 'Select a Player'}
+                      </>
+                    )}
+                  </button>
+                  
+                  {currentUser && isCaptain && (
+                    <div className="autodraft-toggle-container">
+                      <ToggleSwitch 
+                        isOn={autoDraftEnabled}
+                        handleToggle={toggleAutoDraft}
+                        label="Auto Draft"
+                        disabled={makingPick}
+                      />
+                      <div className={`autodraft-status ${autoDraftEnabled ? 'enabled' : 'disabled'}`}>
+                        {autoDraftEnabled ? 'Autodraft is ON' : 'Autodraft is OFF'}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="section-content section-content-large-padding">
             
             {draftState && draftState.availablePool && draftState.availablePool.length > 0 ? (
@@ -960,7 +1144,9 @@ export function Draft() {
                   {filteredAvailablePlayers.map(player => (
                     <PlayerCard 
                       key={player.id} 
-                      player={player} 
+                      player={player}
+                      isSelected={selectedPlayer && selectedPlayer.id === player.id}
+                      onSelect={handlePlayerSelect}
                     />
                   ))}
                 </div>
@@ -984,25 +1170,51 @@ export function Draft() {
           </div>
           <div className="section-content">
             {draftState && draftState.draftStarted && draftState.teams ? (
-              Object.entries(draftState.teams).map(([captainId, players]) => {
-                // Find the captain name from the captains list
-                const captain = draftState.captains ? draftState.captains.find(c => c.userId === captainId) : null;
-                const teamName = captain ? captain.teamName : `Team ${captainId}`;
-                
-                return (
-                <div key={captainId} className="team-container">
-                  <div className="team-header">
-                    <h3 className="team-name">{teamName}</h3>
-                    <span className="team-count">{players.length} players</span>
-                  </div>
-                  <div className="players-grid">
-                    {players.map(player => (
-                      <PlayerCard key={player.id} player={player} />
-                    ))}
-                  </div>
+              <>
+                {/* Team tabs */}
+                <div className="team-tabs">
+                  {Object.entries(draftState.teams)
+                    .slice(0, maxCaptains) // Limit to maximum number of captains (6)
+                    .map(([captainId, players], index) => {
+                      // Find the captain name from the captains list
+                      const captain = draftState.captains ? draftState.captains.find(c => c.userId === captainId) : null;
+                      const captainFirstName = captain ? captain.firstName : `Team ${index + 1}`;
+                      
+                      return (
+                        <div 
+                          key={captainId} 
+                          className={`team-tab ${activeTeamTab === index ? "active" : ""}`}
+                          onClick={() => setActiveTeamTab(index)}
+                        >
+                          {captainFirstName}'s Team
+                        </div>
+                      );
+                  })}
                 </div>
-              );
-              })
+                
+                {/* Team content */}
+                {Object.entries(draftState.teams)
+                  .slice(0, maxCaptains) // Limit to maximum number of captains (6)
+                  .map(([captainId, players], index) => {
+                    // Find the captain name from the captains list
+                    const captain = draftState.captains ? draftState.captains.find(c => c.userId === captainId) : null;
+                    const teamName = captain ? captain.teamName : `Team ${captainId}`;
+                    
+                    return (
+                      <div key={captainId} className={`team-content ${activeTeamTab === index ? "active" : ""}`}>
+                        <div className="team-header">
+                          <h3 className="team-name">{teamName}</h3>
+                          <span className="team-count">{players.length} players</span>
+                        </div>
+                        <div className="players-grid">
+                          {players.map(player => (
+                            <PlayerCard key={player.id} player={player} />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </>
             ) : draftState && draftState.draftStarted ? (
               <p>No teams available</p>
             ) : (

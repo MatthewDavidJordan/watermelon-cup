@@ -120,7 +120,7 @@ export const Home = () => {
                 </li>
                 <li>
                   <span>Regular Season End</span>
-                  <span className="value">July 26, 2025</span>
+                  <span className="value">July 30, 2025</span>
                 </li>
                 <li>
                   <span>Playoffs & Championship</span>

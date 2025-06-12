@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/PlayerCard.css';
 
-const PlayerCard = ({ player }) => {
+const PlayerCard = ({ player, isSelected, onSelect }) => {
   // Helper function to get initials from first and last name
   const getPlayerInitials = (firstName, lastName) => {
     return `${firstName[0]}${lastName[0]}`;
@@ -71,7 +71,10 @@ const PlayerCard = ({ player }) => {
   const gradYear = player.graduationYear || new Date().getFullYear() + 1; // Default to next year if not provided
   
   return (
-    <div className={`fifa-card ${getCardType(gradYear)}`}>
+    <div 
+      className={`fifa-card ${getCardType(gradYear)} ${isSelected ? 'fifa-card-selected' : ''}`}
+      onClick={() => onSelect && onSelect(player)}
+    >
       <div className="fifa-card-pattern"></div>
       <div className="fifa-card-content">
         <div className="fifa-card-top">

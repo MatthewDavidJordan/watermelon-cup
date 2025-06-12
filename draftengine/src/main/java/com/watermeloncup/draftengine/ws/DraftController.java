@@ -79,7 +79,91 @@ public class DraftController {
         
         return response;
     }
+    
+    /**
+     * Handle player pick messages from the new UI
+     * @param pickRequest the pick request containing captainId and playerId
+     * @return a response indicating whether the pick was successful
+     */
+    @MessageMapping("/make-pick")
+    @SendTo("/topic/pick-response")
+    public Map<String, Object> makePick(Map<String, String> pickRequest) {
+        logger.info("Received make-pick request: {}", pickRequest);
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String captainId = pickRequest.get("captainId");
+            String playerId = pickRequest.get("playerId");
+            
+            if (captainId == null || playerId == null) {
+                logger.warn("Invalid pick request: missing captainId or playerId");
+                response.put("success", false);
+                response.put("message", "Invalid pick request: missing captainId or playerId");
+                return response;
+            }
+            
+            // Validate that the captainId matches the current captain's turn
+            DraftState currentState = draft.currentState();
+            if (!captainId.equals(currentState.currentCaptainId())) {
+                logger.warn("Invalid pick request: not captain's turn. Expected: {}, Got: {}", 
+                    currentState.currentCaptainId(), captainId);
+                response.put("success", false);
+                response.put("message", "It's not your turn to pick");
+                return response;
+            }
+            
+            draft.makePick(captainId, playerId);
+            
+            response.put("success", true);
+            response.put("message", "Pick successful");
+        } catch (Exception e) {
+            logger.error("Error processing pick request: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        
+        return response;
+    }
 
+    /**
+     * Handle autodraft toggle requests
+     * @param request the request containing captainId and autoDraftEnabled flag
+     * @return a response indicating whether the request was successful
+     */
+    @MessageMapping("/set-autodraft")
+    @SendTo("/topic/autodraft-response")
+    public Map<String, Object> setAutoDraft(Map<String, Object> request) {
+        logger.info("Received autodraft toggle request: {}", request);
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String captainId = (String) request.get("captainId");
+            Boolean autoDraftEnabled = (Boolean) request.get("autoDraftEnabled");
+            
+            if (captainId == null || autoDraftEnabled == null) {
+                logger.warn("Invalid autodraft request: missing captainId or autoDraftEnabled");
+                response.put("success", false);
+                response.put("message", "Invalid autodraft request: missing captainId or autoDraftEnabled");
+                return response;
+            }
+            
+            draft.setAutoDraftPreference(captainId, autoDraftEnabled);
+            
+            response.put("success", true);
+            response.put("message", "Autodraft preference updated");
+            response.put("captainId", captainId);
+            response.put("autoDraftEnabled", autoDraftEnabled);
+        } catch (Exception e) {
+            logger.error("Error processing autodraft request: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        
+        return response;
+    }
+    
     @MessageMapping("/heartbeat")       // optional ping
     @SendTo("/topic/draft")
     public DraftState heartbeat() {
