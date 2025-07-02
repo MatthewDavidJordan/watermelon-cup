@@ -8,6 +8,7 @@ import com.watermeloncup.draftengine.model.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -25,11 +26,19 @@ public class DraftService {
     private final SimpMessagingTemplate broker;
     private DraftState state;
     private final FirebaseApp firebaseApp;
+    private final GoogleSheetsService googleSheetsService;
+    
+    // No longer using players-per-team configuration as draft completion is now
+    // determined solely by the availability of players in the pool
+    
+    private boolean draftCompleted = false;
+    private String exportedSheetUrl = null;
 
     @Autowired
-    public DraftService(SimpMessagingTemplate broker, @Autowired(required = false) FirebaseApp fb) {
+    public DraftService(SimpMessagingTemplate broker, @Autowired(required = false) FirebaseApp fb, GoogleSheetsService googleSheetsService) {
         this.broker = broker;
         this.firebaseApp = fb;
+        this.googleSheetsService = googleSheetsService;
 
         // Load players from Firebase first
         List<Player> players = loadPlayersFromFirebase();
@@ -77,6 +86,9 @@ public class DraftService {
         List<Player> captainTeam = new ArrayList<>(updatedTeams.getOrDefault(captainId, new ArrayList<>()));
         captainTeam.add(selectedPlayer);
         updatedTeams.put(captainId, captainTeam);
+        
+        // Check if the draft is complete after this pick
+        boolean isDraftComplete = checkIfDraftComplete(updatedPool, updatedTeams);
 
         // update state with next captain and reset timer
         Instant newExpiry = Instant.now().plusSeconds(60); // 1 minute to pick
@@ -104,6 +116,11 @@ public class DraftService {
 
         // broadcast updated state
         broker.convertAndSend("/topic/draft", state);
+        
+        // If draft is complete, export teams to Google Sheets
+        if (isDraftComplete && !draftCompleted) {
+            exportTeamsToGoogleSheets();
+        }
     }
 
     public DraftState currentState() {
@@ -210,6 +227,9 @@ public class DraftService {
         captainTeam.add(autoSelectedPlayer);
         updatedTeams.put(currentCaptainId, captainTeam);
 
+        // Check if the draft is complete after this auto-pick
+        boolean isDraftComplete = checkIfDraftComplete(updatedPool, updatedTeams);
+
         // Update state with next captain and reset timer
         Instant newExpiry = Instant.now().plusSeconds(60); // 1 minute to pick
 
@@ -236,6 +256,11 @@ public class DraftService {
 
         // Broadcast updated state
         broker.convertAndSend("/topic/draft", state);
+        
+        // If draft is complete, export teams to Google Sheets
+        if (isDraftComplete && !draftCompleted) {
+            exportTeamsToGoogleSheets();
+        }
     }
 
     private String determineNextCaptain(String currentCaptain, Iterable<String> captainIds) {
@@ -357,6 +382,95 @@ public class DraftService {
      * 
      * @return a list of players
      */
+    /**
+     * Broadcast export completion status to all clients
+     * @param exportInfo Map containing export status information
+     */
+    public void broadcastExportCompletion(Map<String, Object> exportInfo) {
+        broker.convertAndSend("/topic/export-complete", exportInfo);
+    }
+    
+    // These methods already exist elsewhere in the class, removing duplicates
+    
+    /**
+     * Check if the draft is complete
+     * @param availablePool the available player pool
+     * @param teams the teams map
+     * @return true if the draft is complete, false otherwise
+     */
+    private boolean checkIfDraftComplete(List<Player> availablePool, Map<String, List<Player>> teams) {
+        // Draft is complete when there are no more players in the available pool
+        
+        // Check if pool is empty
+        if (availablePool.isEmpty()) {
+            logger.info("Draft complete: No more players in available pool");
+            return true;
+        }
+        
+        // Draft is not complete if there are still players available
+        return false;
+    }
+    
+    /**
+     * Export teams to Google Sheets
+     */
+    private void exportTeamsToGoogleSheets() {
+        logger.info("Exporting teams to Google Sheets");
+        draftCompleted = true;
+        
+        try {
+            // Export teams to Google Sheets
+            String sheetUrl = googleSheetsService.exportTeamsToSheet(state.teams(), state.captains());
+            
+            if (sheetUrl != null) {
+                exportedSheetUrl = sheetUrl;
+                logger.info("Teams exported successfully to: {}", sheetUrl);
+                
+                // Broadcast the export completion to all clients
+                Map<String, Object> exportInfo = new HashMap<>();
+                exportInfo.put("status", "success");
+                exportInfo.put("message", "Draft complete! Teams have been exported to Google Sheets.");
+                exportInfo.put("url", sheetUrl);
+                
+                broker.convertAndSend("/topic/export-complete", exportInfo);
+            } else {
+                logger.error("Failed to export teams to Google Sheets");
+                
+                // Broadcast the export failure to all clients
+                Map<String, Object> exportInfo = new HashMap<>();
+                exportInfo.put("status", "error");
+                exportInfo.put("message", "Failed to export teams to Google Sheets. Please contact an administrator.");
+                
+                broker.convertAndSend("/topic/export-complete", exportInfo);
+            }
+        } catch (Exception e) {
+            logger.error("Error exporting teams to Google Sheets", e);
+            
+            // Broadcast the export error to all clients
+            Map<String, Object> exportInfo = new HashMap<>();
+            exportInfo.put("status", "error");
+            exportInfo.put("message", "An error occurred while exporting teams: " + e.getMessage());
+            
+            broker.convertAndSend("/topic/export-complete", exportInfo);
+        }
+    }
+    
+    /**
+     * Get the URL of the exported Google Sheet
+     * @return the URL of the exported Google Sheet, or null if export hasn't happened yet
+     */
+    public String getExportedSheetUrl() {
+        return exportedSheetUrl;
+    }
+    
+    /**
+     * Check if the draft is completed
+     * @return true if the draft is completed, false otherwise
+     */
+    public boolean isDraftCompleted() {
+        return draftCompleted;
+    }
+    
     private List<Player> loadPlayersFromFirebase() {
         List<Player> players = new ArrayList<>();
 
@@ -368,7 +482,7 @@ public class DraftService {
 
                 // Get Firestore instance and use it directly
                 FirestoreClient.getFirestore(firebaseApp).collection("users")
-                        .whereEqualTo("registered2024", true)
+                        .whereEqualTo("registered2025", true)
                         .get()
                         .get() // This blocks until the query completes
                         .getDocuments()
@@ -377,7 +491,7 @@ public class DraftService {
                                 logger.debug("Processing user document: " + doc.getId());
                                 // Get the registered2025 value, defaulting to false if null
                                 Boolean registered2025 = doc.getBoolean("registered2025");
-                                boolean isRegistered2025 = (registered2025 != null) ? registered2025 : false;
+                                Boolean isRegistered2025 = (registered2025 != null) ? registered2025 : false;
 
                                 // Get position data - could be a string or an array
                                 Object positionData = null;
@@ -400,10 +514,10 @@ public class DraftService {
                                         doc.getString("email"),
                                         doc.getString("phone"),
                                         doc.getString("nickname"),
-                                        // Set registered2024 to true since we're filtering for it
-                                        true,
-                                        // Use the processed registered2025 value
-                                        isRegistered2025);
+                                        doc.getBoolean("registered2024") != null ? doc.getBoolean("registered2024")
+                                                : false,
+                                        // set registered2025 to true since we're loading only players with that value
+                                        true);
                                 players.add(player);
                                 logger.debug("Loaded player: " + player.getFullName());
                             } catch (Exception e) {

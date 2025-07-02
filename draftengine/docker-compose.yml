@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  draftengine:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      # Option 1: Use a mounted file path (default)
+      - FIREBASE_CREDENTIALS_PATH=${FIREBASE_CREDENTIALS_PATH:-/app/credentials/firebase-credentials.json}
+      # Option 2: Use base64 encoded credentials
+      - FIREBASE_CREDENTIALS_BASE64=${FIREBASE_CREDENTIALS_BASE64:-}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SHEETS_SPREADSHEET_ID=${SHEETS_SPREADSHEET_ID:-}
+    volumes:
+      # Mount local credentials directory if using file path option
+      - ${CREDENTIALS_DIR:-./credentials}:/app/credentials

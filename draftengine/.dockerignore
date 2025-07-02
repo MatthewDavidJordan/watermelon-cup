@@ -1,0 +1,26 @@
+# Gradle files
+.gradle/
+build/
+!build/libs/*.jar
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Logs
+logs/
+*.log
+
+# Firebase credentials (these should be mounted at runtime)
+*firebase*.json
+
+# Git
+.git/
+.gitignore
+
+# Other
+README.md
+.DS_Store

@@ -368,7 +368,7 @@ export function Draft() {
 
     // Create a new STOMP client
     const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/draft-ws'),
+      webSocketFactory: () => new SockJS('http://draftengine.watermeloncup.com/draft-ws'),
       debug: str => {
         // Only log important messages to reduce console noise
         if (str.includes('Connected') || str.includes('Error') || str.includes('Lost')) {
