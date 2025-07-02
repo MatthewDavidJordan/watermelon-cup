@@ -12,7 +12,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override 
     public void registerStompEndpoints(StompEndpointRegistry r) {
         r.addEndpoint("/draft-ws")
-         .setAllowedOriginPatterns("https://engine.draft.watermeloncup.com",
+         .setAllowedOriginPatterns(
+                                    "https://draftengine.watermeloncup.com",
+                                    "https://watermeloncup.com",
                                     "http://localhost:*")
          .withSockJS();
     }
