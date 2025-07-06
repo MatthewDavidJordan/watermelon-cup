@@ -91,7 +91,7 @@ public class DraftService {
         boolean isDraftComplete = checkIfDraftComplete(updatedPool, updatedTeams);
 
         // update state with next captain and reset timer
-        Instant newExpiry = Instant.now().plusSeconds(60); // 1 minute to pick
+        Instant newExpiry = Instant.now().plusSeconds(180); // 3 minutes to pick
 
         // Get the next captain ID
         String nextCaptainId = state.nextCaptainId();
@@ -231,7 +231,7 @@ public class DraftService {
         boolean isDraftComplete = checkIfDraftComplete(updatedPool, updatedTeams);
 
         // Update state with next captain and reset timer
-        Instant newExpiry = Instant.now().plusSeconds(60); // 1 minute to pick
+        Instant newExpiry = Instant.now().plusSeconds(180); // 3 minutes to pick
 
         // Get the next captain ID
         String nextCaptainId = state.nextCaptainId();
@@ -365,7 +365,7 @@ public class DraftService {
                 secondCaptainName, // Next captain name
                 players, // Available player pool
                 teams, // Teams (empty initially)
-                Instant.now().plusSeconds(60), // 1 minute for first pick
+                Instant.now().plusSeconds(180), // 3 minutes for first pick
                 null, // No last pick yet
                 true, // Draft is started
                 captains, // List of captains (exactly 6)

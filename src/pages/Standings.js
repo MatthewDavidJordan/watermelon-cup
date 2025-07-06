@@ -23,13 +23,13 @@ export function Standings() {
     }
   }, [currentUser, userLoggedIn, navigate]);
 
-  // Fetch the league ID for "Watermelon Cup 2024"
+  // Fetch the league ID for "Watermelon Cup 2025"
   useEffect(() => {
     const fetchLeagueId = async () => {
       try {
         const leaguesQuery = query(
           collection(db, 'leagues'),
-          where('name', '==', 'Watermelon Cup 2024'),
+          where('name', '==', 'Watermelon Cup 2025'),
           limit(1)
         );
         
@@ -38,7 +38,7 @@ export function Standings() {
         if (!leaguesSnapshot.empty) {
           setLeagueId(leaguesSnapshot.docs[0].id);
         } else {
-          throw new Error('Watermelon Cup 2024 league not found');
+          throw new Error('Watermelon Cup 2025 league not found');
         }
       } catch (err) {
         console.error('Error fetching league:', err);
@@ -172,7 +172,7 @@ export function Standings() {
       {/* Hero section */}
       <div className="standings-hero">
         <div className="standings-hero-container">
-          <h1 className="standings-hero-title">Watermelon Cup 2024 Standings</h1>
+          <h1 className="standings-hero-title">Watermelon Cup 2025 Standings</h1>
           <p className="standings-hero-description">
             View the current league table and team statistics for the tournament.
           </p>

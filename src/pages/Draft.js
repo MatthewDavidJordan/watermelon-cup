@@ -366,19 +366,58 @@ export function Draft() {
     // Add a log message
     addMessage('Connecting to WebSocket server...');
 
-    // Create a new STOMP client
+    // Create a new STOMP client with improved reliability
     const client = new Client({
       webSocketFactory: () => new SockJS('https://draftengine.watermeloncup.com/draft-ws'),
       debug: str => {
-        // Only log important messages to reduce console noise
-        if (str.includes('Connected') || str.includes('Error') || str.includes('Lost')) {
-          console.log(str);
+        // Log all important connection-related messages
+        if (str.includes('Connected') || str.includes('Error') || str.includes('Lost') || 
+            str.includes('Heartbeat') || str.includes('Opening') || str.includes('Transport')) {
+          console.log(`STOMP: ${str}`);
+          // Add to UI messages if it's a significant event
+          if (str.includes('Error') || str.includes('Lost') || str.includes('Connected')) {
+            addMessage(`WebSocket: ${str}`);
+          }
         }
       },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
+      // More aggressive reconnection strategy
+      reconnectDelay: 2000, // Start with 2 seconds
+      maxReconnectDelay: 30000, // Max 30 seconds between attempts
+      reconnectDelay: function(attemptCount) {
+        return Math.min(2000 * Math.pow(1.5, attemptCount), 30000); // Exponential backoff with cap
+      },
+      // More frequent heartbeats for better connection detection
+      heartbeatIncoming: 10000, // 10 seconds
+      heartbeatOutgoing: 10000, // 10 seconds
+      // Connection timeout
+      connectTimeout: 20000, // 20 seconds timeout for initial connection
     });
+
+    // Error handling callback
+    client.onStompError = (frame) => {
+      console.error('STOMP Error:', frame);
+      addMessage(`WebSocket Error: ${frame.headers?.message || 'Unknown error'}`);
+    };
+
+    // Disconnection handling
+    client.onDisconnect = () => {
+      console.log('STOMP Disconnected');
+      setConnected(false);
+      addMessage('Disconnected from WebSocket server. Attempting to reconnect...');
+    };
+
+    // WebSocket connection error
+    client.onWebSocketError = (event) => {
+      console.error('WebSocket Error:', event);
+      addMessage(`WebSocket Connection Error. Attempting to reconnect...`);
+    };
+
+    // WebSocket close handling
+    client.onWebSocketClose = (event) => {
+      console.log('WebSocket Closed:', event.code, event.reason);
+      setConnected(false);
+      addMessage(`WebSocket Connection Closed: ${event.code}. Attempting to reconnect...`);
+    };
 
     // Set up connect callback
     client.onConnect = (frame) => {
@@ -487,28 +526,54 @@ export function Draft() {
       addMessage(`Error: ${frame.headers['message']}`);
       setConnected(false);
     };
-
-    // Set up WebSocket closed callback
-    client.onWebSocketClose = () => {
-      addMessage('WebSocket connection closed');
-      setConnected(false);
-      setConnectedUsers([]); // Clear connected users list when connection is closed
-    };
-
-    // Activate the client
-    client.activate();
+    
+    // Store the client reference
     stompClient.current = client;
-  }, [addMessage, setConnected, setDraftState, currentUser]);
+    
+    // Activate the connection
+    client.activate();
+    
+    // Set up a reconnection timer as a backup
+    const reconnectionTimer = setInterval(() => {
+      if (!client.connected && !client.deactivated) {
+        console.log('Reconnection timer: Attempting to reconnect...');
+        addMessage('Connection check: Attempting to reconnect...');
+        try {
+          // Try to reconnect if not already connecting
+          if (client.connectionState !== 'CONNECTING') {
+            client.deactivate();
+            setTimeout(() => client.activate(), 1000);
+          }
+        } catch (e) {
+          console.error('Error during reconnection attempt:', e);
+        }
+      }
+    }, 30000); // Check every 30 seconds
+    
+    // Return cleanup function
+    return () => {
+      clearInterval(reconnectionTimer);
+      if (client) {
+        try {
+          client.deactivate();
+          console.log('WebSocket client deactivated during cleanup');
+        } catch (e) {
+          console.error('Error deactivating client during cleanup:', e);
+        }
+      }
+    };
+  }
   
-  // Now we can use the useEffect 
+  // Connect to WebSocket server when component mounts
+  // Only if the user is registered for 2025 and not checking registration
   useEffect(() => {
-    // Connect to WebSocket server when component mounts
-    // Only if the user is registered for 2025 and not checking registration
     if (!isCheckingRegistration && isRegisteredFor2025) {
       connectWebSocket();
     }
-
-    // Cleanup on unmount
+  }, [isCheckingRegistration, isRegisteredFor2025, connectWebSocket]);
+  
+  // Cleanup on component unmount
+  useEffect(() => {
     return () => {
       if (stompClient.current) {
         try {

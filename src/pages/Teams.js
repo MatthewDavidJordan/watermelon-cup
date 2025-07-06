@@ -31,10 +31,10 @@ export function Teams() {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        // Query the leagues collection to find the league with name "Watermelon Cup 2024"
+        // Query the leagues collection to find the league with name "Watermelon Cup 2025"
         const leaguesCollection = collection(db, 'leagues');
         const leaguesSnapshot = await getDocs(leaguesCollection);
-        const watermelonCupLeague = leaguesSnapshot.docs.find(doc => doc.data().name === "Watermelon Cup 2024");
+        const watermelonCupLeague = leaguesSnapshot.docs.find(doc => doc.data().name === "Watermelon Cup 2025");
 
         if (watermelonCupLeague) {
           setLeagueId(watermelonCupLeague.id);
@@ -59,7 +59,7 @@ export function Teams() {
 
           setTeams(teamsList);
         } else {
-          console.log("Watermelon Cup 2024 league not found");
+          console.log("Watermelon Cup 2025 league not found");
         }
       } catch (error) {
         console.error("Error fetching teams:", error);
@@ -100,7 +100,7 @@ export function Teams() {
       {/* Hero section */}
       <div className="teams-hero">
         <div className="teams-hero-container">
-          <h1 className="teams-hero-title">Watermelon Cup 2024 Teams</h1>
+          <h1 className="teams-hero-title">Watermelon Cup 2025 Teams</h1>
           <p className="teams-hero-description">
             Explore the teams competing in this year's tournament and discover their players.
           </p>

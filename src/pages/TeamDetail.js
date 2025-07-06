@@ -171,7 +171,7 @@ export default function TeamDetail() {
             </div>
             <div>
               <h1 className="detail-title">{team?.name}</h1>
-              <p className="detail-description">{team?.description || `${team?.name} is competing in the Watermelon Cup 2024.`}</p>
+              <p className="detail-description">{team?.description || `${team?.name} is competing in the Watermelon Cup 2025.`}</p>
             </div>
           </div>
         </div>
