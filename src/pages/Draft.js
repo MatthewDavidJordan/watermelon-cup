@@ -87,9 +87,9 @@ export function Draft() {
   const positionFilterDropdownContainerRef = useRef(null);
   const footFilterDropdownContainerRef = useRef(null);
 
-  
+
   // We'll get available players and teams from the server via WebSocket
-  
+
   const stompClient = useRef(null);
   const timerRef = useRef(null);
 
@@ -125,7 +125,7 @@ export function Draft() {
       // Check if the current user is one of the captains
       const userIsCaptain = draftState.captains.some(captain => captain.userId === currentUser.uid);
       setIsCaptain(userIsCaptain);
-      
+
       // If user is a captain, check for autodraft preference in server state
       if (userIsCaptain && draftState.autoDraftPreferences) {
         const serverAutoDraftSetting = draftState.autoDraftPreferences[currentUser.uid];
@@ -148,11 +148,11 @@ export function Draft() {
         const lastName = (p.lastName || '').toLowerCase();
         const fullName = `${firstName} ${lastName}`.toLowerCase();
         const nickname = (p.nickname || '').toLowerCase();
-        
-        return firstName.includes(query) || 
-               lastName.includes(query) || 
-               fullName.includes(query) || 
-               nickname.includes(query);
+
+        return firstName.includes(query) ||
+          lastName.includes(query) ||
+          fullName.includes(query) ||
+          nickname.includes(query);
       });
     }
 
@@ -208,7 +208,7 @@ export function Draft() {
 
     setFilteredAvailablePlayers(players);
   }, [draftState?.availablePool, selectedFilters, raritySortOrder, searchQuery]);
-  
+
   // Handle search input change
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -298,22 +298,22 @@ export function Draft() {
       try {
         setIsCheckingRegistration(true);
         addMessage('Verifying your registration for the 2025 season...');
-        
+
         // Use auth.currentUser.uid as the document ID
         const userRef = doc(db, 'users', auth.currentUser.uid);
         const userDoc = await getDoc(userRef);
-        
+
         if (!userDoc.exists()) {
           // User document doesn't exist, redirect to registration page
           addMessage('User profile not found. Please complete your registration for the 2025 season.');
           setTimeout(() => navigate('/register'), 3000);
           return;
         }
-        
+
         const userData = userDoc.data();
         const registered2025 = userData.registered2025 === true;
         setIsRegisteredFor2025(registered2025);
-        
+
         if (!registered2025) {
           // User is not registered for 2025, show message and redirect
           addMessage('You need to register for the 2025 season to access the draft.');
@@ -333,7 +333,7 @@ export function Draft() {
 
     checkRegistrationStatus();
   }, [currentUser, userLoggedIn, navigate, addMessage]);
-  
+
   // Define disconnectWebSocket before connectWebSocket since connectWebSocket depends on it
   const disconnectWebSocket = React.useCallback(() => {
     if (stompClient.current && stompClient.current.connected) {
@@ -344,7 +344,7 @@ export function Draft() {
     }
     setShowDisconnectConfirm(false);
   }, [addMessage]);
-  
+
   // Define connectWebSocket after its dependencies
   const connectWebSocket = React.useCallback(() => {
     // If already connected, don't create a new connection
@@ -352,7 +352,7 @@ export function Draft() {
       addMessage('Already connected to WebSocket server');
       return;
     }
-    
+
     // If there's a client that's disconnected or in the process of connecting, deactivate it
     if (stompClient.current) {
       try {
@@ -362,7 +362,7 @@ export function Draft() {
       }
       stompClient.current = null;
     }
-    
+
     // Add a log message
     addMessage('Connecting to WebSocket server...');
 
@@ -371,8 +371,8 @@ export function Draft() {
       webSocketFactory: () => new SockJS('https://draftengine.watermeloncup.com/draft-ws'),
       debug: str => {
         // Log all important connection-related messages
-        if (str.includes('Connected') || str.includes('Error') || str.includes('Lost') || 
-            str.includes('Heartbeat') || str.includes('Opening') || str.includes('Transport')) {
+        if (str.includes('Connected') || str.includes('Error') || str.includes('Lost') ||
+          str.includes('Heartbeat') || str.includes('Opening') || str.includes('Transport')) {
           console.log(`STOMP: ${str}`);
           // Add to UI messages if it's a significant event
           if (str.includes('Error') || str.includes('Lost') || str.includes('Connected')) {
@@ -381,9 +381,8 @@ export function Draft() {
         }
       },
       // More aggressive reconnection strategy
-      reconnectDelay: 2000, // Start with 2 seconds
       maxReconnectDelay: 30000, // Max 30 seconds between attempts
-      reconnectDelay: function(attemptCount) {
+      reconnectDelay: function (attemptCount) {
         return Math.min(2000 * Math.pow(1.5, attemptCount), 30000); // Exponential backoff with cap
       },
       // More frequent heartbeats for better connection detection
@@ -428,7 +427,7 @@ export function Draft() {
       client.subscribe('/topic/draft', (message) => {
         const payload = JSON.parse(message.body);
         setDraftState(payload);
-        
+
         // Check if we're a captain and update autodraft status from server
         if (currentUser && payload.autoDraftPreferences) {
           const serverAutoDraftSetting = payload.autoDraftPreferences[currentUser.uid];
@@ -438,11 +437,11 @@ export function Draft() {
             // Autodraft preference is now managed by the server
           }
         }
-        
-        addMessage('Received draft state update with ' + 
+
+        addMessage('Received draft state update with ' +
           (payload.availablePool ? payload.availablePool.length : 0) + ' available players');
       });
-      
+
       // Subscribe to connected users updates
       client.subscribe('/topic/connected-users', (message) => {
         const payload = JSON.parse(message.body);
@@ -451,13 +450,13 @@ export function Draft() {
         setConnectedUsers(uniqueUsers);
         addMessage(`Connected users updated: ${payload.count} users online`);
       });
-      
+
       // Subscribe to authentication response
       client.subscribe('/topic/auth-response', (message) => {
         const userInfo = JSON.parse(message.body);
         addMessage(`Received user info: ${userInfo.firstName} ${userInfo.lastName}`);
       });
-      
+
       // Subscribe to captain updates
       client.subscribe('/topic/captains', (message) => {
         const payload = JSON.parse(message.body);
@@ -465,23 +464,23 @@ export function Draft() {
         setCaptainCount(payload.count || 0);
         setMaxCaptains(payload.maxCaptains || 6);
         setCanBecomeCaptain(payload.canBecomeCaptain || false);
-        
+
         // Check if current user is a captain
         if (currentUser && payload.captains) {
-          const isUserCaptain = payload.captains.some(captain => 
+          const isUserCaptain = payload.captains.some(captain =>
             captain.userId === currentUser.uid
           );
           setIsCaptain(isUserCaptain);
         }
-        
+
         addMessage(`Captain update: ${payload.count}/${payload.maxCaptains} captains registered`);
       });
-      
+
       // Subscribe to captain response
       client.subscribe('/topic/captain-response', (message) => {
         const response = JSON.parse(message.body);
         setBecomingCaptain(false);
-        
+
         if (response.success) {
           setIsCaptain(true);
           addMessage(`Captain registration successful: ${response.message}`);
@@ -495,7 +494,7 @@ export function Draft() {
         // Store the current user's email in a session variable
         // This will be used to identify the current user in the connected users list
         window.sessionStorage.setItem('currentUserEmail', currentUser.email);
-        
+
         client.publish({
           destination: '/app/auth',
           body: JSON.stringify({
@@ -507,13 +506,13 @@ export function Draft() {
         });
         addMessage(`Sent authentication info for ${currentUser.email}`);
       }
-      
+
       // Send a heartbeat to get initial state including available players
       client.publish({
         destination: '/app/heartbeat',
         body: JSON.stringify({}),
       });
-      
+
       // Request captain status
       client.publish({
         destination: '/app/captain-status',
@@ -526,13 +525,13 @@ export function Draft() {
       addMessage(`Error: ${frame.headers['message']}`);
       setConnected(false);
     };
-    
+
     // Store the client reference
     stompClient.current = client;
-    
+
     // Activate the connection
     client.activate();
-    
+
     // Set up a reconnection timer as a backup
     const reconnectionTimer = setInterval(() => {
       if (!client.connected && !client.deactivated) {
@@ -549,7 +548,7 @@ export function Draft() {
         }
       }
     }, 30000); // Check every 30 seconds
-    
+
     // Return cleanup function
     return () => {
       clearInterval(reconnectionTimer);
@@ -562,8 +561,8 @@ export function Draft() {
         }
       }
     };
-  }
-  
+  }, [addMessage, currentUser]);
+
   // Connect to WebSocket server when component mounts
   // Only if the user is registered for 2025 and not checking registration
   useEffect(() => {
@@ -571,7 +570,7 @@ export function Draft() {
       connectWebSocket();
     }
   }, [isCheckingRegistration, isRegisteredFor2025, connectWebSocket]);
-  
+
   // Cleanup on component unmount
   useEffect(() => {
     return () => {
@@ -588,19 +587,19 @@ export function Draft() {
         clearInterval(timerRef.current);
       }
     };
-  }, [connectWebSocket, isCheckingRegistration, isRegisteredFor2025, addMessage]); 
-  
+  }, [connectWebSocket, isCheckingRegistration, isRegisteredFor2025, addMessage]);
+
   // Function to update the time left - using useCallback to memoize the function
   const updateTimeLeft = React.useCallback(() => {
     if (!draftState || !draftState.pickExpiresAt) {
       setTimeLeft(null);
       return;
     }
-    
+
     const expiryTime = new Date(draftState.pickExpiresAt).getTime();
     const now = new Date().getTime();
     const difference = expiryTime - now;
-    
+
     if (difference <= 0) {
       setTimeLeft('Expired');
       // Clear the interval if time has expired
@@ -614,23 +613,23 @@ export function Draft() {
       setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
     }
   }, [draftState, timerRef]); // Add dependencies for the callback
-  
+
   // Effect to update the countdown timer
   useEffect(() => {
     // Clear any existing timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
-    
+
     // If we have a draft state with an expiration time, start the countdown
     if (draftState && draftState.pickExpiresAt) {
       // Update the timer immediately
       updateTimeLeft();
-      
+
       // Then update it every second
       timerRef.current = setInterval(updateTimeLeft, 1000);
     }
-    
+
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -639,13 +638,13 @@ export function Draft() {
   }, [draftState, updateTimeLeft]); // Add updateTimeLeft to dependency array
 
 
-  
+
   // Function to become a captain
   const becomeCaptain = React.useCallback(() => {
     if (stompClient.current && stompClient.current.connected && currentUser) {
       setBecomingCaptain(true);
       addMessage('Sending request to become a captain...');
-      
+
       // Send only the essential user identification information
       // The backend will handle retrieving the proper name from Firebase
       stompClient.current.publish({
@@ -660,7 +659,7 @@ export function Draft() {
       addMessage('Not connected to server or not logged in');
     }
   }, [addMessage, currentUser]);
-  
+
   // Toggle autodraft functionality
   const toggleAutoDraft = React.useCallback(() => {
     if (stompClient.current && stompClient.current.connected && currentUser) {
@@ -683,27 +682,27 @@ export function Draft() {
       addMessage('Please select a player first');
       return;
     }
-    
+
     if (!draftState || !draftState.draftStarted) {
       addMessage('Draft has not started yet');
       return;
     }
-    
+
     if (!currentUser) {
       addMessage('You must be logged in to make a pick');
       return;
     }
-    
+
     // Check if it's this user's turn
     if (currentUser.uid !== draftState.currentCaptainId) {
       addMessage(`It's not your turn to pick. Current captain is ${draftState.currentCaptain}`);
       return;
     }
-    
+
     if (stompClient.current && stompClient.current.connected) {
       setMakingPick(true);
       addMessage(`Sending pick: ${selectedPlayer.firstName} ${selectedPlayer.lastName}`);
-      
+
       stompClient.current.publish({
         destination: '/app/make-pick',
         body: JSON.stringify({
@@ -711,7 +710,7 @@ export function Draft() {
           playerId: selectedPlayer.id
         }),
       });
-      
+
       // Clear selection after pick is made
       setTimeout(() => {
         setSelectedPlayer(null);
@@ -722,7 +721,7 @@ export function Draft() {
       setMakingPick(false);
     }
   }, [addMessage, currentUser, draftState, selectedPlayer]);
-  
+
   // Function to handle player selection
   const handlePlayerSelect = React.useCallback((player) => {
     // Toggle selection if clicking the same player
@@ -779,7 +778,7 @@ export function Draft() {
       </div>
     );
   }
-  
+
   // If not registered for 2025, show a message
   if (!isRegisteredFor2025) {
     return (
@@ -850,17 +849,17 @@ export function Draft() {
                 [...new Set(connectedUsers)].map((user, index) => {
                   // Skip displaying if the user is anonymous
                   if (user === 'anonymous') return null;
-                  
+
                   // Get the current user's email from session storage
                   const currentUserEmail = window.sessionStorage.getItem('currentUserEmail');
-                  
+
                   // Check if this user is the current user
-                  const isCurrentUser = 
+                  const isCurrentUser =
                     currentUserEmail && (
-                      user.includes(currentUserEmail) || 
+                      user.includes(currentUserEmail) ||
                       (currentUserEmail.includes('@') && user.includes(currentUserEmail.split('@')[0]))
                     );
-                  
+
                   return (
                     <div key={index} className="user-pill">
                       <div className="user-avatar">{getInitials(user)}</div>
@@ -873,9 +872,9 @@ export function Draft() {
               )}
             </div>
             <div className="connection-controls">
-              <button 
+              <button
                 className="control-button button-connect"
-                onClick={connectWebSocket} 
+                onClick={connectWebSocket}
                 disabled={connected}
               >
                 <svg
@@ -895,9 +894,9 @@ export function Draft() {
                 Connect
               </button>
 
-              <button 
+              <button
                 className="control-button button-disconnect"
-                onClick={() => setShowDisconnectConfirm(true)} 
+                onClick={() => setShowDisconnectConfirm(true)}
                 disabled={!connected}
               >
                 <svg
@@ -919,7 +918,7 @@ export function Draft() {
             </div>
           </div>
         </div>
-        
+
         {/* Team captains section */}
         <div className="draft-section">
           <div className="section-header">
@@ -956,11 +955,11 @@ export function Draft() {
                     <div className="no-captains">No captains registered yet</div>
                   )}
                 </div>
-                
+
                 <div className="captain-controls">
-                  <button 
+                  <button
                     className="control-button button-captain"
-                    onClick={becomeCaptain} 
+                    onClick={becomeCaptain}
                     disabled={!connected || isCaptain || !canBecomeCaptain || becomingCaptain || captainCount >= maxCaptains}
                   >
                     <svg
@@ -978,7 +977,7 @@ export function Draft() {
                     </svg>
                     {becomingCaptain ? 'Registering...' : isCaptain ? 'You are a Captain' : 'Be a Captain'}
                   </button>
-                  
+
                   <div className="captain-status">
                     {isCaptain ? (
                       <span className="status-badge status-captain">You are a team captain</span>
@@ -989,7 +988,7 @@ export function Draft() {
                     )}
                   </div>
                 </div>
-                
+
                 {captainCount < maxCaptains && (
                   <div className="waiting-message">
                     <p>Waiting for {maxCaptains - captainCount} more captains to join before the draft can start.</p>
@@ -1013,22 +1012,22 @@ export function Draft() {
                 <div className="state-item">
                   <span className="state-label">Current Captain:</span>
                   <span className="state-value captain-highlight">
-                    {draftState.captains && draftState.currentCaptainId ? 
+                    {draftState.captains && draftState.currentCaptainId ?
                       (() => {
                         const captain = draftState.captains.find(c => c.userId === draftState.currentCaptainId);
                         return captain ? `${captain.firstName} ${captain.lastName}` : draftState.currentCaptainId;
-                      })() : 
+                      })() :
                       draftState.currentCaptain}
                   </span>
                 </div>
                 <div className="state-item">
                   <span className="state-label">Next Captain:</span>
                   <span className="state-value">
-                    {draftState.captains && draftState.nextCaptainId ? 
+                    {draftState.captains && draftState.nextCaptainId ?
                       (() => {
                         const captain = draftState.captains.find(c => c.userId === draftState.nextCaptainId);
                         return captain ? `${captain.firstName} ${captain.lastName}` : draftState.nextCaptainId;
-                      })() : 
+                      })() :
                       draftState.nextCaptain}
                   </span>
                 </div>
@@ -1082,15 +1081,15 @@ export function Draft() {
                   className="search-input"
                 />
                 {searchQuery && (
-                  <button 
-                    className="search-clear-button" 
+                  <button
+                    className="search-clear-button"
                     onClick={() => setSearchQuery('')}
                   >
                     ×
                   </button>
                 )}
               </div>
-              
+
               {/* Position Filter Dropdown */}
               <div className="filter-dropdown-container" ref={positionFilterDropdownContainerRef}>
                 <button onClick={togglePositionFilterDropdown} className="control-button filter-button position-toggle has-dropdown-arrow">
@@ -1134,7 +1133,7 @@ export function Draft() {
                               e.stopPropagation(); // Add stopPropagation for consistency
                               handleFootFilterChange(foot);
                             }}
-                          /> 
+                          />
                           <span>{foot}</span>
                         </label>
                       ))}
@@ -1164,9 +1163,9 @@ export function Draft() {
                     <div className="pick-status waiting">{`Waiting for ${draftState.currentCaptain} to pick`}</div>
                   )}
                 </div>
-                
+
                 <div className="draft-action-controls">
-                  <button 
+                  <button
                     className={`make-pick-button ${currentUser && draftState.currentCaptainId === currentUser.uid ? 'active' : 'disabled'}`}
                     onClick={makePick}
                     disabled={!currentUser || draftState.currentCaptainId !== currentUser.uid || makingPick || !selectedPlayer}
@@ -1182,10 +1181,10 @@ export function Draft() {
                       </>
                     )}
                   </button>
-                  
+
                   {currentUser && isCaptain && (
                     <div className="autodraft-toggle-container">
-                      <ToggleSwitch 
+                      <ToggleSwitch
                         isOn={autoDraftEnabled}
                         handleToggle={toggleAutoDraft}
                         label="Auto Draft"
@@ -1200,15 +1199,15 @@ export function Draft() {
               </div>
             </div>
           )}
-          
+
           <div className="section-content section-content-large-padding">
-            
+
             {draftState && draftState.availablePool && draftState.availablePool.length > 0 ? (
               filteredAvailablePlayers.length > 0 ? (
                 <div className="players-grid">
                   {filteredAvailablePlayers.map(player => (
-                    <PlayerCard 
-                      key={player.id} 
+                    <PlayerCard
+                      key={player.id}
                       player={player}
                       isSelected={selectedPlayer && selectedPlayer.id === player.id}
                       onSelect={handlePlayerSelect}
@@ -1244,19 +1243,19 @@ export function Draft() {
                       // Find the captain name from the captains list
                       const captain = draftState.captains ? draftState.captains.find(c => c.userId === captainId) : null;
                       const captainFirstName = captain ? captain.firstName : `Team ${index + 1}`;
-                      
+
                       return (
-                        <div 
-                          key={captainId} 
+                        <div
+                          key={captainId}
                           className={`team-tab ${activeTeamTab === index ? "active" : ""}`}
                           onClick={() => setActiveTeamTab(index)}
                         >
                           {captainFirstName}'s Team
                         </div>
                       );
-                  })}
+                    })}
                 </div>
-                
+
                 {/* Team content */}
                 {Object.entries(draftState.teams)
                   .slice(0, maxCaptains) // Limit to maximum number of captains (6)
@@ -1264,7 +1263,7 @@ export function Draft() {
                     // Find the captain name from the captains list
                     const captain = draftState.captains ? draftState.captains.find(c => c.userId === captainId) : null;
                     const teamName = captain ? captain.teamName : `Team ${captainId}`;
-                    
+
                     return (
                       <div key={captainId} className={`team-content ${activeTeamTab === index ? "active" : ""}`}>
                         <div className="team-header">
@@ -1289,8 +1288,8 @@ export function Draft() {
         </div>
 
         {/* Connection log toggle button */}
-        <button 
-          className="toggle-log-button" 
+        <button
+          className="toggle-log-button"
           onClick={() => setShowLogs(!showLogs)}
         >
           {showLogs ? "Hide Connection Log" : "Show Connection Log"}
@@ -1308,7 +1307,7 @@ export function Draft() {
             {showLogs ? <path d="m18 15-6-6-6 6" /> : <path d="m6 9 6 6 6-6" />}
           </svg>
         </button>
-        
+
         {/* Connection log section - toggleable */}
         {showLogs && (
           <div className="draft-section">
