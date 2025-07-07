@@ -24,12 +24,12 @@ export function Matches() {
   }, [currentUser, userLoggedIn, navigate]);
 
   useEffect(() => {
-    // Fetch the league with name "Watermelon Cup 2024"
+    // Fetch the league with name "Watermelon Cup 2025"
     const fetchLeagueId = async () => {
       try {
         const leaguesQuery = query(
           collection(db, 'leagues'),
-          where('name', '==', 'Watermelon Cup 2024'),
+          where('name', '==', 'Watermelon Cup 2025'),
           limit(1)
         );
         
@@ -38,7 +38,7 @@ export function Matches() {
         if (!leaguesSnapshot.empty) {
           setLeagueId(leaguesSnapshot.docs[0].id);
         } else {
-          throw new Error('Watermelon Cup 2024 league not found');
+          throw new Error('Watermelon Cup 2025 league not found');
         }
       } catch (err) {
         console.error('Error fetching league:', err);
@@ -221,7 +221,7 @@ export function Matches() {
       {/* Hero section */}
       <div className="matches-hero">
         <div className="matches-hero-container">
-          <h1 className="matches-hero-title">Watermelon Cup 2024 Matches</h1>
+          <h1 className="matches-hero-title">Watermelon Cup 2025 Matches</h1>
           <p className="matches-hero-description">
             View all matches organized by week and round throughout the tournament.
           </p>
