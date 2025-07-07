@@ -25,15 +25,24 @@ export default function useLeagueStats(leagueId) {
         snap.docs.forEach(doc => {
           const m = doc.data();
           const rawStatus = m.status;
+          
+          // Skip matches that aren't completed or have null scores
           if (rawStatus && String(rawStatus).toLowerCase() !== 'completed') {
             return;
           }
+          
+          // Skip matches with null scores to prevent them from being counted as draws
+          if (m.homeScore === null || m.awayScore === null) {
+            return;
+          }
+          
           const homeScore = Number(m.homeScore);
           const awayScore = Number(m.awayScore);
           const teamsToCount = [
             { id: m.homeTeamId, gf: homeScore, ga: awayScore },
             { id: m.awayTeamId, gf: awayScore, ga: homeScore }
           ].filter(t => t.id);
+          
           teamsToCount.forEach(({ id, gf, ga }) => {
             if (!stats[id]) {
               stats[id] = { wins:0, draws:0, losses:0, goalsFor:0, goalsAgainst:0 };
