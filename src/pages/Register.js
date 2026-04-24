@@ -165,7 +165,7 @@ export const Register = () => {
         <div className="auth-hero-container">
           <h1 className="auth-hero-title">Register for 2026 Watermelon Cup</h1>
           <p className="auth-hero-description">
-            Games run every Wednesday from 6pm - 8pm. Dates: July 8 - August 5.
+            Games run every Wednesday at 6pm & 7pm (2x27 min halves). Dates: July 8 - August 5.
           </p>
         </div>
       </div>

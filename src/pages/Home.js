@@ -57,7 +57,7 @@ export const Home = () => {
         <Carousel />
         <div className="hero-content">
           <h1>Watermelon Cup 2026</h1>
-          <CountdownTimer targetDate="2026-07-08T18:00:00-04:00" />
+          <CountdownTimer targetDate="2026-06-15T18:00:00-04:00" />
           
           <div className="hero-content-container">
             {(!userLoggedIn || !registered) ? (
@@ -112,7 +112,7 @@ export const Home = () => {
               <ul className="info-list">
                 <li>
                   <span>Registration Deadline</span>
-                  <span className="value">June 14, 2026</span>
+                  <span className="value">June 15, 2026</span>
                 </li>
                 <li>
                   <span>Season Start</span>
@@ -155,7 +155,7 @@ export const Home = () => {
                 </li>
                 <li>
                   <span>Game Duration</span>
-                  <span className="value">2 x 25 min halves</span>
+                  <span className="value">2 x 27 min halves</span>
                 </li>
               </ul>
             </div>
