@@ -14,7 +14,19 @@ export function Footer() {
               Comments, questions, or suggestions?<br />
               <a href="mailto:mdj82@georgetown.edu">Email us</a>
             </p>
-            <div className="social-links">
+          </div>
+
+          <div className="footer-column">
+            <h3>Resources</h3>
+            <ul className="footer-links">
+              <li>
+                <a href="https://staplessoccer.com" target="_blank" rel="noopener noreferrer">Staples Soccer</a>
+              </li>
+              <li>
+                <a href="https://06880danwoog.com" target="_blank" rel="noopener noreferrer">06880</a>
+              </li>
+            </ul>
+            <div className="social-links" style={{marginTop: '1rem'}}>
               <a href="https://www.instagram.com/staplesbsocc/?hl=en" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Instagram">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -53,18 +65,6 @@ export function Footer() {
                 </svg>
               </a>
             </div>
-          </div>
-
-          <div className="footer-column">
-            <h3>Resources</h3>
-            <ul className="footer-links">
-              <li>
-                <a href="https://staplessoccer.com" target="_blank" rel="noopener noreferrer">Staples Soccer</a>
-              </li>
-              <li>
-                <a href="https://06880danwoog.com" target="_blank" rel="noopener noreferrer">06880</a>
-              </li>
-            </ul>
           </div>
         </div>
 
