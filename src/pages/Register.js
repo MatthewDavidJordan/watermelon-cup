@@ -36,11 +36,11 @@ export const Register = () => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        // Check if the user is already registered for the 2025 season
+        // Check if the user is already registered for the 2026 season
         const userRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userRef);
-        if (userDoc.exists() && userDoc.data().registered2025) {
-          // User is already registered for the 2025 season, navigate to the homepage
+        if (userDoc.exists() && userDoc.data().registered2026) {
+          // User is already registered for the 2026 season, navigate to the homepage
           navigate("/");
         } else {
           // User is not registered, proceed with the registration process
@@ -148,8 +148,8 @@ export const Register = () => {
           clubTeam: clubTeamRef.current.value,
           footPref: footRef.current.value,
           position: selectedPositions, // This is already storing the abbreviations
-          registered2025: true,
-          registeredFor2025SeasonAt: serverTimestamp(),
+          registered2026: true,
+          registeredFor2026SeasonAt: serverTimestamp(),
         });
         navigate("/");
       } catch (error) {
@@ -163,22 +163,23 @@ export const Register = () => {
       {/* Hero section */}
       <div className="auth-hero">
         <div className="auth-hero-container">
-          <h1 className="auth-hero-title">Register for 2025 Watermelon Cup</h1>
+          <h1 className="auth-hero-title">Register for 2026 Watermelon Cup</h1>
           <p className="auth-hero-description">
-            Games run every Wednesday from 6pm - 8pm. Dates: July 9 - August 6.
+            Games run every Wednesday from 6pm - 8pm. Dates: July 8 - August 5.
           </p>
         </div>
       </div>
 
       {/* Auth container */}
       <div className="auth-container">
-        <div className="auth-card">
+        <div className="auth-card auth-card-wide">
           <div className="auth-card-content">
             <h2 className="auth-form-title">Player Registration</h2>
             
             {error && <div className="auth-alert">{error}</div>}
             
             <Form onSubmit={handleSubmit}>
+              <div className="auth-form-grid">
               <div className="auth-form-group">
                 <label className="auth-form-label">First Name</label>
                 <input 
@@ -283,7 +284,7 @@ export const Register = () => {
                 </select>
               </div>
               
-              <div className="auth-form-group">
+              <div className="auth-form-group auth-form-full">
                 <label className="auth-form-label">Preferred Position(s) (select up to 3)</label>
                 <div className="position-selection">
                   {[
@@ -356,17 +357,20 @@ export const Register = () => {
                 {positionError && <div className="auth-alert">{positionError}</div>}
               </div>
               
-              <button 
-                type="submit" 
-                className="auth-btn" 
-                disabled={loading}
-              >
-                {loading ? (
-                  <l-tailspin size="25" stroke="5" speed="0.9" color="white"></l-tailspin>
-                ) : (
-                  "Register"
-                )}
-              </button>
+              <div className="auth-form-full">
+                <button 
+                  type="submit" 
+                  className="auth-btn" 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <l-tailspin size="25" stroke="5" speed="0.9" color="white"></l-tailspin>
+                  ) : (
+                    "Register"
+                  )}
+                </button>
+              </div>
+              </div>
             </Form>
           </div>
         </div>

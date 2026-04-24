@@ -62,6 +62,7 @@
   
   .footer-links a {
     font-size: 0.875rem;
+    color: white;
     transition: color 0.2s ease;
   }
   
@@ -119,6 +120,7 @@
   }
   
   .footer-contact a {
+    color: white;
     text-decoration: underline;
   }
   

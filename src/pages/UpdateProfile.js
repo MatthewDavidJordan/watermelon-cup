@@ -133,8 +133,8 @@ export const UpdateProfile = () => {
         clubTeam: clubTeamRef.current.value,
         footPref: footRef.current.value,
         position: selectedPositions,
-        // Keep registered2025 status if it exists
-        ...(userData.registered2025 && { registered2025: userData.registered2025 })
+        // Keep registered2026 status if it exists
+        ...(userData.registered2026 && { registered2026: userData.registered2026 })
       });
       return Promise.resolve();
     } catch (error) {
@@ -157,13 +157,14 @@ export const UpdateProfile = () => {
 
       {/* Auth container */}
       <div className="auth-container">
-        <div className="auth-card">
+        <div className="auth-card auth-card-wide">
           <div className="auth-card-content">
             <h2 className="auth-form-title">Update Profile</h2>
             
             {error && <div className="auth-alert">{error}</div>}
             
             <Form onSubmit={handleSubmit}>
+              <div className="auth-form-grid">
               <div className="auth-form-group">
                 <label className="auth-form-label">First Name</label>
                 <input 
@@ -256,7 +257,7 @@ export const UpdateProfile = () => {
                 </select>
               </div>
               
-              <div className="auth-form-group">
+              <div className="auth-form-group auth-form-full">
                 <label className="auth-form-label">Preferred Position(s) (select up to 3)</label>
                 <div className="position-selection">
                   {[
@@ -323,20 +324,23 @@ export const UpdateProfile = () => {
                 />
               </div>
               
-              <button 
-                type="submit" 
-                className="auth-btn" 
-                disabled={loading}
-              >
-                {loading ? (
-                  <l-tailspin size="25" stroke="5" speed="0.9" color="white"></l-tailspin>
-                ) : (
-                  "Update Profile"
-                )}
-              </button>
-              
-              <div className="auth-links">
-                <Link to="/" className="auth-link">Cancel and return to home</Link>
+              <div className="auth-form-full">
+                <button 
+                  type="submit" 
+                  className="auth-btn" 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <l-tailspin size="25" stroke="5" speed="0.9" color="white"></l-tailspin>
+                  ) : (
+                    "Update Profile"
+                  )}
+                </button>
+                
+                <div className="auth-links">
+                  <Link to="/" className="auth-link">Cancel and return to home</Link>
+                </div>
+              </div>
               </div>
             </Form>
           </div>

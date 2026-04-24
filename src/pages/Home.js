@@ -28,7 +28,7 @@ export const Home = () => {
             const userDoc = await getDoc(userRef);
             if (userDoc.exists()) {
               const userData = userDoc.data();
-              setRegistered(userData.registered2025);
+              setRegistered(userData.registered2026);
             } else {
               setRegistered(false);
             }
@@ -56,8 +56,8 @@ export const Home = () => {
       <section className="hero-section">
         <Carousel />
         <div className="hero-content">
-          <h1>Watermelon Cup 2025</h1>
-          <CountdownTimer targetDate="2025-07-09T18:00:00-04:00" />
+          <h1>Watermelon Cup 2026</h1>
+          <CountdownTimer targetDate="2026-07-08T18:00:00-04:00" />
           
           <div className="hero-content-container">
             {(!userLoggedIn || !registered) ? (
@@ -72,7 +72,7 @@ export const Home = () => {
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
-                <span>You're registered for the 2025 Watermelon Cup!</span>
+                <span>You're registered for the 2026 Watermelon Cup!</span>
               </div>
             )}
           </div>
@@ -84,7 +84,7 @@ export const Home = () => {
         <div className="container">
           <div className="section-header">
             <h2>League Information</h2>
-            <p className="league-info-subtitle">Stay updated with the latest information about the Watermelon Cup 2025 season.</p>
+            <p className="league-info-subtitle">Stay updated with the latest information about the Watermelon Cup 2026 season.</p>
           </div>
 
           <div className="info-cards">
@@ -112,19 +112,19 @@ export const Home = () => {
               <ul className="info-list">
                 <li>
                   <span>Registration Deadline</span>
-                  <span className="value">June 15, 2025</span>
+                  <span className="value">June 14, 2026</span>
                 </li>
                 <li>
                   <span>Season Start</span>
-                  <span className="value">July 9, 2025</span>
+                  <span className="value">July 8, 2026</span>
                 </li>
                 <li>
                   <span>Regular Season End</span>
-                  <span className="value">July 30, 2025</span>
+                  <span className="value">July 29, 2026</span>
                 </li>
                 <li>
                   <span>Playoffs & Championship</span>
-                  <span className="value">August 6, 2025</span>
+                  <span className="value">August 5, 2026</span>
                 </li>
               </ul>
             </div>

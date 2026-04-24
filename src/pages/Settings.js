@@ -102,7 +102,7 @@ export const Settings = () => {
                     <span className="team-badge">{team}</span>
                   ) : (
                     <span className="no-team-message">
-                      You're currently not on a Watermelon Cup Team for the summer of 2025. 
+                      You're currently not on a Watermelon Cup Team for the summer of 2026. 
                       If you haven't registered please register from the home page.
                     </span>
                   )}
