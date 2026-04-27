@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { Loading } from '../components/Loading';
 import '../styles/matches.css';
 import { useAuth } from '../contexts/authContexts/firebaseAuth';
 import { useNavigate } from 'react-router-dom';
+import { useSeason } from '../contexts/SeasonContext';
+import { SeasonSelector } from '../components/SeasonSelector';
 
 export function Matches() {
   const [activeWeek, setActiveWeek] = useState(1);
@@ -12,9 +14,9 @@ export function Matches() {
   const [teamData, setTeamData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [leagueId, setLeagueId] = useState(null);
   const { currentUser, userLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const { selectedLeagueId: leagueId, selectedLeague, loading: seasonLoading } = useSeason();
   
   // Check if user is logged in
   useEffect(() => {
@@ -23,31 +25,13 @@ export function Matches() {
     }
   }, [currentUser, userLoggedIn, navigate]);
 
+  // Reset data when league changes
   useEffect(() => {
-    // Fetch the league with name "Watermelon Cup 2025"
-    const fetchLeagueId = async () => {
-      try {
-        const leaguesQuery = query(
-          collection(db, 'leagues'),
-          where('name', '==', 'Watermelon Cup 2025'),
-          limit(1)
-        );
-        
-        const leaguesSnapshot = await getDocs(leaguesQuery);
-        
-        if (!leaguesSnapshot.empty) {
-          setLeagueId(leaguesSnapshot.docs[0].id);
-        } else {
-          throw new Error('Watermelon Cup 2025 league not found');
-        }
-      } catch (err) {
-        console.error('Error fetching league:', err);
-        setError('Failed to load league data: ' + err.message);
-      }
-    };
-
-    fetchLeagueId();
-  }, []);
+    setMatchesData({});
+    setTeamData({});
+    setActiveWeek(1);
+    if (leagueId) setLoading(true);
+  }, [leagueId]);
 
   useEffect(() => {
     if (!leagueId) return;
@@ -221,7 +205,7 @@ export function Matches() {
       {/* Hero section */}
       <div className="matches-hero">
         <div className="matches-hero-container">
-          <h1 className="matches-hero-title">Watermelon Cup 2025 Matches</h1>
+          <h1 className="matches-hero-title">{selectedLeague ? `${selectedLeague.name} Matches` : 'Matches'}</h1>
           <p className="matches-hero-description">
             View all matches organized by week and round throughout the tournament.
           </p>
@@ -230,6 +214,7 @@ export function Matches() {
 
       {/* Matches content */}
       <div className="matches-container">
+        <SeasonSelector />
         {/* Week tabs */}
         <div className="week-tabs">
           <div className={`week-tab ${activeWeek === 1 ? "active" : ""}`} onClick={() => setActiveWeek(1)}>

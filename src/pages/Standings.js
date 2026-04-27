@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase/firebase';
-import { collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { Loading } from '../components/Loading';
 import '../styles/standings.css';
 import useLeagueStats from '../hooks/useLeagueStats';
 import { useAuth } from '../contexts/authContexts/firebaseAuth';
 import { useNavigate } from 'react-router-dom';
+import { useSeason } from '../contexts/SeasonContext';
+import { SeasonSelector } from '../components/SeasonSelector';
 
 export function Standings() {
-  const [leagueId, setLeagueId] = useState(null);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { statsByTeam, loading: statsLoading, error: statsError } = useLeagueStats(leagueId);
   const { currentUser, userLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const { selectedLeagueId: leagueId, selectedLeague, loading: seasonLoading } = useSeason();
+  const { statsByTeam, loading: statsLoading, error: statsError } = useLeagueStats(leagueId);
   
   // Check if user is logged in
   useEffect(() => {
@@ -23,31 +25,11 @@ export function Standings() {
     }
   }, [currentUser, userLoggedIn, navigate]);
 
-  // Fetch the league ID for "Watermelon Cup 2025"
+  // Reset data when league changes
   useEffect(() => {
-    const fetchLeagueId = async () => {
-      try {
-        const leaguesQuery = query(
-          collection(db, 'leagues'),
-          where('name', '==', 'Watermelon Cup 2025'),
-          limit(1)
-        );
-        
-        const leaguesSnapshot = await getDocs(leaguesQuery);
-        
-        if (!leaguesSnapshot.empty) {
-          setLeagueId(leaguesSnapshot.docs[0].id);
-        } else {
-          throw new Error('Watermelon Cup 2025 league not found');
-        }
-      } catch (err) {
-        console.error('Error fetching league:', err);
-        setError('Failed to load league data: ' + err.message);
-      }
-    };
-
-    fetchLeagueId();
-  }, []);
+    setTeams([]);
+    if (leagueId) setLoading(true);
+  }, [leagueId]);
 
   // Fetch teams once we have the league ID
   useEffect(() => {
@@ -172,7 +154,7 @@ export function Standings() {
       {/* Hero section */}
       <div className="standings-hero">
         <div className="standings-hero-container">
-          <h1 className="standings-hero-title">Watermelon Cup 2025 Standings</h1>
+          <h1 className="standings-hero-title">{selectedLeague ? `${selectedLeague.name} Standings` : 'Standings'}</h1>
           <p className="standings-hero-description">
             View the current league table and team statistics for the tournament.
           </p>
@@ -181,6 +163,7 @@ export function Standings() {
 
       {/* Standings content */}
       <div className="standings-container">
+        <SeasonSelector />
         {/* League table */}
         <div className="league-table-container">
           <div className="league-table-header">

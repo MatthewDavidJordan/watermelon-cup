@@ -39,12 +39,12 @@ export function UploadScores() {
   }, [currentUser, userLoggedIn, navigate]);
 
   useEffect(() => {
-    // Fetch the league with name "Watermelon Cup 2025"
+    // Fetch the league with name "Watermelon Cup 2026"
     const fetchLeagueId = async () => {
       try {
         const leaguesQuery = query(
           collection(db, 'leagues'),
-          where('name', '==', 'Watermelon Cup 2025'),
+          where('name', '==', 'Watermelon Cup 2026'),
           limit(1)
         );
 
@@ -53,7 +53,7 @@ export function UploadScores() {
         if (!leaguesSnapshot.empty) {
           setLeagueId(leaguesSnapshot.docs[0].id);
         } else {
-          throw new Error('Watermelon Cup 2025 league not found');
+          throw new Error('Watermelon Cup 2026 league not found');
         }
       } catch (err) {
         console.error('Error fetching league:', err);
@@ -287,7 +287,7 @@ export function UploadScores() {
         <div className="matches-hero-container">
           <h1 className="matches-hero-title">Upload Scores</h1>
           <p className="matches-hero-description">
-            Update match scores for the Watermelon Cup 2025 tournament.
+            Update match scores for the Watermelon Cup 2026 tournament.
           </p>
         </div>
       </div>

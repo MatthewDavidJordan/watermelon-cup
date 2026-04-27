@@ -7,10 +7,13 @@ import { ArrowLeft, Trophy, Calendar, Users } from 'lucide-react';
 import '../styles/teams.css';
 import { useAuth } from '../contexts/authContexts/firebaseAuth';
 import { Loading } from '../components/Loading';
+import { useSeason } from '../contexts/SeasonContext';
 
 export default function TeamDetail() {
   const { teamId, leagueId } = useParams();
   const { statsByTeam, loading: statsLoading, error: statsError } = useLeagueStats(leagueId);
+  const { leagues } = useSeason();
+  const leagueName = leagues.find(l => l.id === leagueId)?.name || 'Watermelon Cup';
   const [team, setTeam] = useState(null);
   const [matches, setMatches] = useState([]);
   const [teamNames, setTeamNames] = useState({});
@@ -171,7 +174,7 @@ export default function TeamDetail() {
             </div>
             <div>
               <h1 className="detail-title">{team?.name}</h1>
-              <p className="detail-description">{team?.description || `${team?.name} is competing in the Watermelon Cup 2025.`}</p>
+              <p className="detail-description">{team?.description || `${team?.name} is competing in the ${leagueName}.`}</p>
             </div>
           </div>
         </div>

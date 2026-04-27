@@ -6,14 +6,16 @@ import "../styles/teams.css";
 import useLeagueStats from "../hooks/useLeagueStats";
 import { useAuth } from '../contexts/authContexts/firebaseAuth';
 import { Loading } from '../components/Loading';
+import { useSeason } from '../contexts/SeasonContext';
+import { SeasonSelector } from '../components/SeasonSelector';
 
 export function Teams() {
   const [teams, setTeams] = useState([]);
   const [expandedTeams, setExpandedTeams] = useState({});
-  const [leagueId, setLeagueId] = useState(null);
-  const { statsByTeam, loading: statsLoading, error: statsError } = useLeagueStats(leagueId);
   const { currentUser, userLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const { selectedLeagueId: leagueId, selectedLeague, loading: seasonLoading } = useSeason();
+  const { statsByTeam, loading: statsLoading, error: statsError } = useLeagueStats(leagueId);
   
   // Check if user is logged in
   useEffect(() => {
@@ -28,39 +30,36 @@ export function Teams() {
     }
   }, [statsByTeam, statsLoading, statsError]);
 
+  // Reset data when league changes
   useEffect(() => {
+    setTeams([]);
+    setExpandedTeams({});
+  }, [leagueId]);
+
+  useEffect(() => {
+    if (!leagueId) return;
+
     const fetchTeams = async () => {
       try {
-        // Query the leagues collection to find the league with name "Watermelon Cup 2025"
-        const leaguesCollection = collection(db, 'leagues');
-        const leaguesSnapshot = await getDocs(leaguesCollection);
-        const watermelonCupLeague = leaguesSnapshot.docs.find(doc => doc.data().name === "Watermelon Cup 2025");
+        const teamsCollection = collection(db, 'leagues', leagueId, 'teams');
+        const teamsSnapshot = await getDocs(teamsCollection);
 
-        if (watermelonCupLeague) {
-          setLeagueId(watermelonCupLeague.id);
-          // Query the teams collection within the found league document
-          const teamsCollection = collection(db, 'leagues', watermelonCupLeague.id, 'teams');
-          const teamsSnapshot = await getDocs(teamsCollection);
+        // Fetch details for each team
+        const teamsList = await Promise.all(teamsSnapshot.docs.map(async (teamDoc) => {
+          const teamData = teamDoc.data();
 
-          // Fetch details for each team
-          const teamsList = await Promise.all(teamsSnapshot.docs.map(async (teamDoc) => {
-            const teamData = teamDoc.data();
+          // Fetch player nicknames based on player emails
+          const playerDetails = teamData.players ? await fetchPlayerDetails(teamData.players) : [];
 
-            // Fetch player nicknames based on player emails
-            const playerDetails = teamData.players ? await fetchPlayerDetails(teamData.players) : [];
+          return { 
+            id: teamDoc.id, 
+            ...teamData, 
+            color: teamData.color || null,
+            players: playerDetails 
+          };
+        }));
 
-            return { 
-              id: teamDoc.id, 
-              ...teamData, 
-              color: teamData.color || null,
-              players: playerDetails 
-            };
-          }));
-
-          setTeams(teamsList);
-        } else {
-          console.log("Watermelon Cup 2025 league not found");
-        }
+        setTeams(teamsList);
       } catch (error) {
         console.error("Error fetching teams:", error);
       }
@@ -86,11 +85,9 @@ export function Teams() {
       }));
       return players;
     };
-    
-    
 
     fetchTeams();
-  }, []);
+  }, [leagueId]);
 
   if (statsLoading) return <Loading />;
   if (statsError) return <p>Error: {statsError.message}</p>;
@@ -100,7 +97,7 @@ export function Teams() {
       {/* Hero section */}
       <div className="teams-hero">
         <div className="teams-hero-container">
-          <h1 className="teams-hero-title">Watermelon Cup 2025 Teams</h1>
+          <h1 className="teams-hero-title">{selectedLeague ? `${selectedLeague.name} Teams` : 'Teams'}</h1>
           <p className="teams-hero-description">
             Explore the teams competing in this year's tournament and discover their players.
           </p>
@@ -109,6 +106,7 @@ export function Teams() {
 
       {/* Teams grid */}
       <div className="teams-container">
+        <SeasonSelector />
         <div className="teams-grid">
           {teams.map((team) => (
             <div key={team.id} className="team-card">

@@ -16,6 +16,7 @@ import { MainNavigation } from './components/main-navigation';
 import { Footer } from './components/footer';
 import TeamDetail from './pages/TeamDetail';
 import { Draft } from './pages/Draft';
+import { SeasonProvider } from './contexts/SeasonContext';
 
 
 function App() {
@@ -24,16 +25,16 @@ function App() {
       <MainNavigation/>
       <Routes>
         <Route path="/" element={ <Home/> } />
-        <Route path="/teams" element={ <Teams/> } />
-        <Route path="/standings" element={<Standings/>} />
-        <Route path="/matches" element={<Matches/>} />
+        <Route path="/teams" element={ <SeasonProvider><Teams/></SeasonProvider> } />
+        <Route path="/standings" element={<SeasonProvider><Standings/></SeasonProvider>} />
+        <Route path="/matches" element={<SeasonProvider><Matches/></SeasonProvider>} />
         <Route path="/login" element={<Login/>} />
         <Route path="/register" element={<Register/>} />
         <Route path="/settings" element={<Settings/>} />
         <Route path="/forgot-password" element={<ForgotPassword/>} />
         <Route path="/signup" element={<Signup/>} />
         <Route path="/update-profile" element={<UpdateProfile/>} />
-        <Route path="/teams/:teamId/:leagueId" element={<TeamDetail/>} />
+        <Route path="/teams/:teamId/:leagueId" element={<SeasonProvider><TeamDetail/></SeasonProvider>} />
         <Route path="/upload_scores" element={<UploadScores/>} />
         <Route path="/draft" element={<Draft/>} />
       </Routes>

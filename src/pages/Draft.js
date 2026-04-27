@@ -58,7 +58,7 @@ export function Draft() {
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
   const [timeLeft, setTimeLeft] = useState(null);
   const [connectedUsers, setConnectedUsers] = useState([]);
-  const [isRegisteredFor2025, setIsRegisteredFor2025] = useState(false);
+  const [isRegisteredFor2026, setIsRegisteredFor2026] = useState(false);
   const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
   const [showLogs, setShowLogs] = useState(false);
   const [captains, setCaptains] = useState([]);
@@ -286,18 +286,18 @@ export function Draft() {
     setShowFootFilterDropdown(false);
   };
 
-  // Check if user is logged in and registered for 2025
+  // Check if user is logged in and registered for 2026
   useEffect(() => {
     if (!userLoggedIn || !currentUser) {
       navigate('/login');
       return;
     }
 
-    // Check if user is registered for 2025
+    // Check if user is registered for 2026
     const checkRegistrationStatus = async () => {
       try {
         setIsCheckingRegistration(true);
-        addMessage('Verifying your registration for the 2025 season...');
+        addMessage('Verifying your registration for the 2026 season...');
 
         // Use auth.currentUser.uid as the document ID
         const userRef = doc(db, 'users', auth.currentUser.uid);
@@ -305,22 +305,22 @@ export function Draft() {
 
         if (!userDoc.exists()) {
           // User document doesn't exist, redirect to registration page
-          addMessage('User profile not found. Please complete your registration for the 2025 season.');
+          addMessage('User profile not found. Please complete your registration for the 2026 season.');
           setTimeout(() => navigate('/register'), 3000);
           return;
         }
 
         const userData = userDoc.data();
-        const registered2025 = userData.registered2025 === true;
-        setIsRegisteredFor2025(registered2025);
+        const registered2026 = userData.registered2026 === true;
+        setIsRegisteredFor2026(registered2026);
 
-        if (!registered2025) {
-          // User is not registered for 2025, show message and redirect
-          addMessage('You need to register for the 2025 season to access the draft.');
+        if (!registered2026) {
+          // User is not registered for 2026, show message and redirect
+          addMessage('You need to register for the 2026 season to access the draft.');
           addMessage('Redirecting to registration page...');
           setTimeout(() => navigate('/register'), 3000);
         } else {
-          addMessage('✅ Registration verified for 2025 season');
+          addMessage('✅ Registration verified for 2026 season');
         }
       } catch (error) {
         console.error('Error checking registration status:', error);
@@ -564,12 +564,12 @@ export function Draft() {
   }, [addMessage, currentUser]);
 
   // Connect to WebSocket server when component mounts
-  // Only if the user is registered for 2025 and not checking registration
+  // Only if the user is registered for 2026 and not checking registration
   useEffect(() => {
-    if (!isCheckingRegistration && isRegisteredFor2025) {
+    if (!isCheckingRegistration && isRegisteredFor2026) {
       connectWebSocket();
     }
-  }, [isCheckingRegistration, isRegisteredFor2025, connectWebSocket]);
+  }, [isCheckingRegistration, isRegisteredFor2026, connectWebSocket]);
 
   // Cleanup on component unmount
   useEffect(() => {
@@ -587,7 +587,7 @@ export function Draft() {
         clearInterval(timerRef.current);
       }
     };
-  }, [connectWebSocket, isCheckingRegistration, isRegisteredFor2025, addMessage]);
+  }, [connectWebSocket, isCheckingRegistration, isRegisteredFor2026, addMessage]);
 
   // Function to update the time left - using useCallback to memoize the function
   const updateTimeLeft = React.useCallback(() => {
@@ -779,8 +779,8 @@ export function Draft() {
     );
   }
 
-  // If not registered for 2025, show a message
-  if (!isRegisteredFor2025) {
+  // If not registered for 2026, show a message
+  if (!isRegisteredFor2026) {
     return (
       <div className="draft-page">
         <div className="draft-container">
@@ -793,8 +793,8 @@ export function Draft() {
             </div>
             <div className="section-content">
               <div className="not-registered">
-                <h3>Not Registered for 2025</h3>
-                <p>You need to be registered for the 2025 season to access the draft.</p>
+                <h3>Not Registered for 2026</h3>
+                <p>You need to be registered for the 2026 season to access the draft.</p>
                 <p>Redirecting to homepage...</p>
               </div>
             </div>
@@ -818,7 +818,7 @@ export function Draft() {
     );
   }
 
-  // If registered for 2025, show the draft UI
+  // If registered for 2026, show the draft UI
   return (
     <div className="draft-page">
       <div className="draft-container">
