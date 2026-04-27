@@ -30,6 +30,25 @@
     font-size: 1rem;
 }
 
+/* Hero CTA subtext */
+.hero-cta-subtext {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+}
+
+.hero-cta-link {
+    color: white;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.hero-cta-link:hover {
+    color: white;
+    opacity: 0.9;
+}
+
 /* League Info Section */
 .section-header {
     text-align: center;

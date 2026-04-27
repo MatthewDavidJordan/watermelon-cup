@@ -62,9 +62,12 @@ export const Home = () => {
           <div className="hero-content-container">
             {(!userLoggedIn || !registered) ? (
               <div className="hero-cta">
-                <Link to={userLoggedIn ? "/register" : "/login"} className="btn-register">
-                  {userLoggedIn ? 'Register Now' : 'Login to Register'}
+                <Link to={userLoggedIn ? "/register" : "/signup"} className="btn-register">
+                  {userLoggedIn ? 'Register Now' : 'Sign Up & Register'}
                 </Link>
+                {!userLoggedIn && (
+                  <p className="hero-cta-subtext">Already have an account? <Link to="/login" className="hero-cta-link">Log In</Link></p>
+                )}
               </div>
             ) : (
               <div className="hero-registration-badge">

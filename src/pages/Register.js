@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/authContexts/firebaseAuth";
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from "../firebase/firebase";
 import { tailspin } from 'ldrs';
+import { AuthStepper } from "../components/auth-stepper";
 import "../styles/auth.css";
 
 tailspin.register();
@@ -167,6 +168,7 @@ export const Register = () => {
           <p className="auth-hero-description">
             Games run every Wednesday at 6pm & 7pm (2x27 min halves). Dates: July 8 - August 5.
           </p>
+          <AuthStepper currentStep={2} />
         </div>
       </div>
 

@@ -3,8 +3,10 @@ import { Form } from "react-bootstrap";
 import { doSignInWithEmailAndPassword, doSignInWithGoogle } from "../firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
-import { auth } from "../firebase/firebase";
+import { auth, db } from "../firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { tailspin } from 'ldrs';
+import { AuthStepper } from "../components/auth-stepper";
 import "../styles/auth.css";
 
 tailspin.register();
@@ -18,7 +20,18 @@ export const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (userLoggedIn) navigate("/");
+    const checkAndRedirect = async () => {
+      if (userLoggedIn && auth.currentUser) {
+        const userRef = doc(db, 'users', auth.currentUser.uid);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists() && userDoc.data().registered2026) {
+          navigate("/");
+        } else {
+          navigate("/register");
+        }
+      }
+    };
+    checkAndRedirect();
   }, [userLoggedIn, navigate]);
 
   async function handleSubmit(e) {
@@ -49,10 +62,15 @@ export const Login = () => {
   };
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        // User is signed in, navigate to the homepage
-        navigate("/");
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists() && userDoc.data().registered2026) {
+          navigate("/");
+        } else {
+          navigate("/register");
+        }
       }
     });
 
@@ -69,6 +87,7 @@ export const Login = () => {
           <p className="auth-hero-description">
             Sign in to access your account and league pages
           </p>
+          <AuthStepper currentStep={1} />
         </div>
       </div>
 
@@ -77,6 +96,10 @@ export const Login = () => {
         <div className="auth-card">
           <div className="auth-card-content">
             <h2 className="auth-form-title">Log In</h2>
+
+            <div className="auth-info-callout">
+              <strong>Step 1 of 2:</strong> Sign in or create an account first, then you'll complete player registration on the next page.
+            </div>
             
             {error && <div className="auth-alert">{error}</div>}
             

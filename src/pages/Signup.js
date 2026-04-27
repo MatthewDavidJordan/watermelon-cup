@@ -3,8 +3,10 @@ import { Form } from "react-bootstrap";
 import { doCreateUserWithEmailAndPassword, doSignInWithGoogle } from "../firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
-import { auth } from "../firebase/firebase";
+import { auth, db } from "../firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { tailspin } from 'ldrs';
+import { AuthStepper } from "../components/auth-stepper";
 import "../styles/auth.css";
 
 tailspin.register();
@@ -19,7 +21,18 @@ export const Signup = () => {
   const { userLoggedIn } = useAuth();
 
   useEffect(() => {
-    if (userLoggedIn) navigate("/");
+    const checkAndRedirect = async () => {
+      if (userLoggedIn && auth.currentUser) {
+        const userRef = doc(db, 'users', auth.currentUser.uid);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists() && userDoc.data().registered2026) {
+          navigate("/");
+        } else {
+          navigate("/register");
+        }
+      }
+    };
+    checkAndRedirect();
   }, [userLoggedIn, navigate]);
 
   async function handleSubmit(e) {
@@ -54,10 +67,15 @@ export const Signup = () => {
   };
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        // User is signed in, navigate to the homepage
-        navigate("/");
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists() && userDoc.data().registered2026) {
+          navigate("/");
+        } else {
+          navigate("/register");
+        }
       }
     });
 
@@ -74,6 +92,7 @@ export const Signup = () => {
           <p className="auth-hero-description">
             Create an account to register for the Watermelon Cup
           </p>
+          <AuthStepper currentStep={1} />
         </div>
       </div>
 
@@ -82,6 +101,10 @@ export const Signup = () => {
         <div className="auth-card">
           <div className="auth-card-content">
             <h2 className="auth-form-title">Sign Up</h2>
+
+            <div className="auth-info-callout">
+              <strong>Step 1 of 2:</strong> Create your account first, then you'll complete player registration on the next page.
+            </div>
             
             {error && <div className="auth-alert">{error}</div>}
             

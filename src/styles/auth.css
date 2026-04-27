@@ -332,6 +332,17 @@
 }
 
 
+.auth-info-callout {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  line-height: 1.5;
+}
+
 .auth-alert {
   padding: 0.75rem 1rem;
   margin-bottom: 1.5rem;

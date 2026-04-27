@@ -1,0 +1,81 @@
+.auth-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0.5rem;
+  margin-top: 1.25rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.auth-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step-circle {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.auth-step.active .step-circle {
+  border-color: white;
+  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.auth-step.completed .step-circle {
+  border-color: white;
+  color: white;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.step-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+
+.auth-step.active .step-label {
+  color: white;
+}
+
+.auth-step.completed .step-label {
+  color: white;
+}
+
+.step-connector {
+  width: 4rem;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 0 0.75rem;
+  margin-bottom: 1.5rem;
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.step-connector-fill {
+  width: 0%;
+  height: 100%;
+  background-color: white;
+  transition: width 0.3s ease;
+}
+
+.step-connector-fill.active {
+  width: 100%;
+}
