@@ -12,7 +12,7 @@ export function Footer() {
             </p>
             <p className="footer-contact">
               Comments, questions, or suggestions?<br />
-              <a href="mailto:mdj82@georgetown.edu">Email us</a>
+              <a href="mailto:mj1001571@gmail.com">Email us</a>
             </p>
           </div>
 
