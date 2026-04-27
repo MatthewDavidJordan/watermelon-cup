@@ -4,16 +4,16 @@ import "./carousel.css"
 
 const images = [
   {
-    src: "/WatermelonPic1.jpg",
-    alt: "Soccer match in progress with players on the field",
+    src: "/WatermelonPic3.jpg",
+    alt: "2025-2026 Team Picture as Conference Champions",
   },
   {
     src: "/WatermelonPic2.jpg",
-    alt: "Team celebration after scoring a goal",
+    alt: "2024-2025 Team Picture",
   },
   {
     src: "/WatermelonPic1.jpg",
-    alt: "Fans cheering in the stadium stands",
+    alt: "2021-2022 Team Celebrating after Quarter Finals Win",
   },
 ]
 
