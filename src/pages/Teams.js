@@ -14,7 +14,7 @@ export function Teams() {
   const [expandedTeams, setExpandedTeams] = useState({});
   const { currentUser, userLoggedIn } = useAuth();
   const navigate = useNavigate();
-  const { selectedLeagueId: leagueId, selectedLeague, loading: seasonLoading } = useSeason();
+  const { selectedLeagueId: leagueId, selectedLeague } = useSeason();
   const { statsByTeam, loading: statsLoading, error: statsError } = useLeagueStats(leagueId);
   
   // Check if user is logged in

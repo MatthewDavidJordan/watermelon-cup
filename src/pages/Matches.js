@@ -16,7 +16,7 @@ export function Matches() {
   const [error, setError] = useState(null);
   const { currentUser, userLoggedIn } = useAuth();
   const navigate = useNavigate();
-  const { selectedLeagueId: leagueId, selectedLeague, loading: seasonLoading } = useSeason();
+  const { selectedLeagueId: leagueId, selectedLeague } = useSeason();
   
   // Check if user is logged in
   useEffect(() => {
