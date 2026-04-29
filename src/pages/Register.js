@@ -25,7 +25,7 @@ export const Register = () => {
   const [positionError, setPositionError] = useState("");
   const navigate = useNavigate();
 
-  const { currentUser, userLoggedIn } = useAuth();
+  const { currentUser } = useAuth();
   const [userData, setUserData] = useState({});
 
   useEffect(() => {
@@ -135,27 +135,30 @@ export const Register = () => {
 
   const addUserInfoToFirestore = async (e) => {
     e.preventDefault();
-    if (userLoggedIn) {
-      try {
-        // Add user info to Firestore
-        const userRef = doc(db, 'users', auth.currentUser.uid);
-        await setDoc(userRef, {
-          firstName: firstNameRef.current.value,
-          lastName: lastNameRef.current.value,
-          nickname: nicknameRef.current.value,
-          email: emailRef.current.value,
-          phone: phoneRef.current.value,
-          graduationYear: gradYearRef.current.value,
-          clubTeam: clubTeamRef.current.value,
-          footPref: footRef.current.value,
-          position: selectedPositions, // This is already storing the abbreviations
-          registered2026: true,
-          registeredFor2026SeasonAt: serverTimestamp(),
-        }, { merge: true });
-        navigate("/");
-      } catch (error) {
-        setError("Error registering user");
-      }
+    const user = auth.currentUser;
+    if (!user) {
+      setError("You must be logged in to register. Please log in and try again.");
+      return;
+    }
+    try {
+      // Add user info to Firestore
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, {
+        firstName: firstNameRef.current.value,
+        lastName: lastNameRef.current.value,
+        nickname: nicknameRef.current.value,
+        email: emailRef.current.value,
+        phone: phoneRef.current.value,
+        graduationYear: gradYearRef.current.value,
+        clubTeam: clubTeamRef.current.value,
+        footPref: footRef.current.value,
+        position: selectedPositions, // This is already storing the abbreviations
+        registered2026: true,
+        registeredFor2026SeasonAt: serverTimestamp(),
+      }, { merge: true });
+      navigate("/");
+    } catch (error) {
+      setError("Error registering user");
     }
   };
 

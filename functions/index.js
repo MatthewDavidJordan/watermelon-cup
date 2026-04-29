@@ -15,6 +15,7 @@ exports.newUserSignup = functions.auth.user().onCreate((user) => {
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     registered2024: false,
     registered2025: false,
+    registered2026: false,
   });
 });
 
