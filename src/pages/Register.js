@@ -111,6 +111,20 @@ export const Register = () => {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    // Validate all required fields are filled out
+    if (
+      !firstNameRef.current.value.trim() ||
+      !lastNameRef.current.value.trim() ||
+      !nicknameRef.current.value.trim() ||
+      !emailRef.current.value.trim() ||
+      !phoneRef.current.value.trim() ||
+      !gradYearRef.current.value ||
+      !footRef.current.value
+    ) {
+      setError("All required fields must be filled out.");
+      return;
+    }
+
     // Validate positions (required and max 3)
     if (selectedPositions.length === 0) {
       setPositionError("Please select at least one position");
@@ -128,7 +142,7 @@ export const Register = () => {
       setLoading(true);
       await addUserInfoToFirestore(e);
     } catch (error) {
-      setError(error + "Failed to register account");
+      setError("Failed to register account. Please try again.");
     }
     setLoading(false);
   }

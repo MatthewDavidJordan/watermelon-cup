@@ -2,11 +2,10 @@ import React, { useRef, useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
 import { doSignInWithEmailAndPassword, doSignInWithGoogle } from "../firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/authContexts/firebaseAuth";
+
 import { auth, db } from "../firebase/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { tailspin } from 'ldrs';
-import { AuthStepper } from "../components/auth-stepper";
 import "../styles/auth.css";
 
 tailspin.register();
@@ -16,23 +15,8 @@ export const Login = () => {
   const passwordRef = useRef();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { userLoggedIn } = useAuth();
+  
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkAndRedirect = async () => {
-      if (userLoggedIn && auth.currentUser) {
-        const userRef = doc(db, 'users', auth.currentUser.uid);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists() && userDoc.data().registered2026) {
-          navigate("/");
-        } else {
-          navigate("/register");
-        }
-      }
-    };
-    checkAndRedirect();
-  }, [userLoggedIn, navigate]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -42,22 +26,34 @@ export const Login = () => {
       setLoading(true);
       await doSignInWithEmailAndPassword(emailRef.current.value, passwordRef.current.value);
       navigate("/");
-    } catch {
-      setError("Failed to log in");
+    } catch (error) {
+      if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+        setError("Incorrect password. Please try again or reset your password below.");
+      } else if (error.code === "auth/user-not-found") {
+        setError("No account found with this email. Please sign up instead.");
+      } else if (error.code === "auth/too-many-requests") {
+        setError("Too many login attempts. Please try again later.");
+      } else if (error.code === "auth/invalid-email") {
+        setError("Please enter a valid email address.");
+      } else {
+        setError("Failed to log in. Please try again.");
+      }
     }
 
     setLoading(false);
   }
 
-  const onGoogleSignIn = (e) => {
+  const onGoogleSignIn = async (e) => {
     e.preventDefault();
     if (!loading) {
       setLoading(true);
-      doSignInWithGoogle().catch((error) => {
+      try {
+        await doSignInWithGoogle();
+      } catch (error) {
         console.log(error.message);
         setError("Failed to sign in with Google");
-        setLoading(false);
-      });
+      }
+      setLoading(false);
     }
   };
 
@@ -87,7 +83,6 @@ export const Login = () => {
           <p className="auth-hero-description">
             Sign in to access your account and league pages
           </p>
-          <AuthStepper currentStep={1} />
         </div>
       </div>
 
@@ -97,10 +92,6 @@ export const Login = () => {
           <div className="auth-card-content">
             <h2 className="auth-form-title">Log In</h2>
 
-            <div className="auth-info-callout">
-              <strong>Step 1 of 2:</strong> Sign in or create an account first, then you'll complete player registration on the next page.
-            </div>
-            
             {error && <div className="auth-alert">{error}</div>}
             
             <Form onSubmit={handleSubmit}>

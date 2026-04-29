@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
 import { doCreateUserWithEmailAndPassword, doSignInWithGoogle } from "../firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/authContexts/firebaseAuth";
+
 import { auth, db } from "../firebase/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { tailspin } from 'ldrs';
@@ -18,22 +18,7 @@ export const Signup = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { userLoggedIn } = useAuth();
-
-  useEffect(() => {
-    const checkAndRedirect = async () => {
-      if (userLoggedIn && auth.currentUser) {
-        const userRef = doc(db, 'users', auth.currentUser.uid);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists() && userDoc.data().registered2026) {
-          navigate("/");
-        } else {
-          navigate("/register");
-        }
-      }
-    };
-    checkAndRedirect();
-  }, [userLoggedIn, navigate]);
+  
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -46,23 +31,33 @@ export const Signup = () => {
       setError("");
       setLoading(true);
       await doCreateUserWithEmailAndPassword(emailRef.current.value, passwordRef.current.value);
-      navigate("/");
-    } catch {
-      setError("Failed to create an account");
+      navigate("/register");
+    } catch (error) {
+      if (error.code === "auth/email-already-in-use") {
+        setError("An account with this email already exists. Please log in instead.");
+      } else if (error.code === "auth/weak-password") {
+        setError("Password is too weak. Please use at least 6 characters.");
+      } else if (error.code === "auth/invalid-email") {
+        setError("Please enter a valid email address.");
+      } else {
+        setError("Failed to create an account. Please try again.");
+      }
     }
 
     setLoading(false);
   }
 
-  const onGoogleSignIn = (e) => {
+  const onGoogleSignIn = async (e) => {
     e.preventDefault();
     if (!loading) {
       setLoading(true);
-      doSignInWithGoogle().catch((error) => {
+      try {
+        await doSignInWithGoogle();
+      } catch (error) {
         console.log(error.message);
         setError("Failed to sign in with Google");
-        setLoading(false);
-      });
+      }
+      setLoading(false);
     }
   };
 
