@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/authContexts/firebaseAuth";
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from "../firebase/firebase";
 import { tailspin } from 'ldrs';
 import { AuthStepper } from "../components/auth-stepper";
@@ -139,7 +139,7 @@ export const Register = () => {
       try {
         // Add user info to Firestore
         const userRef = doc(db, 'users', auth.currentUser.uid);
-        await updateDoc(userRef, {
+        await setDoc(userRef, {
           firstName: firstNameRef.current.value,
           lastName: lastNameRef.current.value,
           nickname: nicknameRef.current.value,
@@ -151,7 +151,7 @@ export const Register = () => {
           position: selectedPositions, // This is already storing the abbreviations
           registered2026: true,
           registeredFor2026SeasonAt: serverTimestamp(),
-        });
+        }, { merge: true });
         navigate("/");
       } catch (error) {
         setError("Error registering user");
