@@ -8,7 +8,8 @@ A React-based web application for the Watermelon Cup — a summer soccer league 
 
 ## Features
 
-- **2-Step Registration Flow** — Account creation (Login/Signup) followed by player registration, with a visual stepper and smart redirects so users never get lost
+- **2-Step Registration Flow** — Account creation (Signup) followed by player registration, with a visual stepper and smart redirects
+- **Season Selector** — Switch between past and current seasons to view historical teams, matches, and standings
 - **Countdown Timer** — Live countdown to registration deadline on the home page
 - **Team Management** — View teams, rosters, and player cards
 - **Match Tracking** — Browse matches organized by week and round, with live score updates
@@ -28,25 +29,37 @@ A React-based web application for the Watermelon Cup — a summer soccer league 
 - **Playoffs & Championship**: August 5, 2026
 - **Game Times**: 6:00 PM & 7:00 PM, 2 x 27 min halves
 
-## Registration Flow
+## Auth & Registration Flow
 
-The site uses a **2-step process** to register players:
+### New Users
+1. **Signup** (`/signup`) — Create an account via email/password or Google sign-in. A stepper and info callout indicate this is step 1 of 2.
+2. **Register** (`/register`) — After signup, users are automatically redirected here to fill in player details (name, positions, graduation year, etc.). The stepper shows step 2 active. On submit, a Firestore user document is created (or merged) with `registered2026: true`.
 
-1. **Step 1 — Create Account**: User signs up (email/password or Google) or logs in. A stepper in the hero banner and an info callout in the form card make it clear this is step 1 of 2.
-2. **Step 2 — Register as Player**: After authentication, unregistered users are automatically redirected to `/register` where they fill in player details (name, position, graduation year, etc.). The stepper updates to show step 2 active with a checkmark on step 1.
+### Returning Users (not yet registered for current season)
+1. **Login** (`/login`) — Sign in with email/password or Google. No stepper is shown since returning users are familiar with the site.
+2. **Register** (`/register`) — Automatically redirected here. The form autofills from their prior season data. On submit, the existing Firestore doc is updated with the new season's registration flag.
 
-Already-registered users who log in are sent straight to the home page.
+### Returning Users (already registered)
+1. **Login** (`/login`) — After sign-in, the `onAuthStateChanged` listener checks the user's Firestore doc. If `registered2026` is `true`, they are sent straight to the home page.
+
+### Cloud Function Auth Trigger
+A Firebase Cloud Function (`newUserSignup`) fires on every new Auth account creation. It creates a Firestore document at `users/{uid}` with the user's email and all registration flags set to `false`. This ensures a Firestore doc exists before the client-side registration form submits. The client uses `setDoc` with `{ merge: true }` as a fallback in case the function hasn't fired yet.
+
+### Error Handling
+- **Signup** — Specific messages for duplicate emails ("account already exists"), weak passwords, and invalid emails.
+- **Login** — Specific messages for wrong password, user not found, too many attempts, and invalid email.
+- **Register** — Validates all required fields are filled and at least 1 (max 3) positions are selected before submitting.
 
 ## Tech Stack
 
 - **Frontend**: React.js
 - **UI Framework**: React Bootstrap, Lucide React (icons)
 - **Styling**: Custom CSS with responsive breakpoints
-- **State Management**: React Context API
+- **State Management**: React Context API (Auth context, Season context)
 - **Routing**: React Router DOM
 - **Authentication**: Firebase Authentication (email/password + Google)
 - **Database**: Firebase Firestore
-- **Cloud Functions**: Firebase Functions
+- **Cloud Functions**: Firebase Functions (auth triggers for user creation/deletion)
 - **Deployment**: Vercel
 
 ## Getting Started
@@ -90,6 +103,15 @@ npm start
 
 The app will be available at `http://localhost:3000`
 
+### Deploying Cloud Functions
+
+```bash
+cd functions
+npm install
+cd ..
+firebase deploy --only functions
+```
+
 ## Project Structure
 
 ```
@@ -101,18 +123,19 @@ watermelon-cup/
 │   └── index.html
 ├── src/
 │   ├── components/
-│   │   ├── auth-stepper.js       # 2-step registration stepper
+│   │   ├── auth-stepper.js       # 2-step registration stepper (used on Signup & Register)
 │   │   ├── carousel.js           # Hero image carousel
 │   │   ├── countdown-timer.js    # Countdown to target date
 │   │   ├── footer.js             # Site footer with links & socials
 │   │   ├── Loading.js            # Loading spinner
 │   │   ├── main-navigation.js    # Top nav bar
 │   │   ├── PlayerCard.js         # FIFA-style player card
+│   │   ├── SeasonSelector.js     # Dropdown to switch between seasons/leagues
 │   │   └── ToggleSwitch.js       # Toggle switch component
 │   ├── pages/
 │   │   ├── Home.js               # Landing page with countdown & league info
-│   │   ├── Login.js              # Login (step 1 of registration flow)
-│   │   ├── Signup.js             # Sign up (step 1 of registration flow)
+│   │   ├── Login.js              # Returning user login
+│   │   ├── Signup.js             # New user signup (step 1 of registration)
 │   │   ├── ForgotPassword.js     # Password reset
 │   │   ├── Register.js           # Player registration (step 2)
 │   │   ├── Settings.js           # User profile & team status
@@ -125,41 +148,34 @@ watermelon-cup/
 │   │   └── Draft.js              # Draft engine
 │   ├── hooks/
 │   │   └── useLeagueStats.js     # Computes team stats from match data
-│   ├── styles/
-│   │   ├── auth.css              # Auth page styles (login, signup, register, settings)
-│   │   ├── globals.css           # Global styles, nav, buttons
-│   │   ├── Home.css              # Home page styles
-│   │   ├── matches.css           # Matches page styles
-│   │   ├── standings.css         # Standings page styles
-│   │   ├── teams.css             # Teams & team detail styles
-│   │   ├── Draft.css             # Draft engine styles
-│   │   ├── PlayerCard.css        # Player card styles
-│   │   └── upload-scores.css     # Score upload styles
+│   ├── styles/                   # CSS files for components and pages
 │   ├── firebase/
 │   │   ├── firebase.js           # Firebase config & initialization
 │   │   └── auth.js               # Auth helper functions
 │   └── contexts/
+│       ├── SeasonContext.js       # Season/league selection context
 │       └── authContexts/
 │           └── firebaseAuth.js   # Auth context provider
 └── functions/
-    └── index.js                  # Firebase Cloud Functions
+    └── index.js                  # Cloud Functions (auth triggers)
 ```
 
 ## Firestore Data Model
 
-- **`users/{uid}`** — Player profile, registration flags (`registered2026`, etc.)
+- **`users/{uid}`** — Player profile (name, email, phone, positions, foot preference, graduation year, club team), registration flags (`registered2024`, `registered2025`, `registered2026`), and timestamps
 - **`leagues/{leagueId}`** — League name, description
 - **`leagues/{leagueId}/teams/{teamId}`** — Team name, color, players
-- **`leagues/{leagueId}/matches/{matchId}`** — Home/away teams, scores, date, field
+- **`leagues/{leagueId}/matches/{matchId}`** — Home/away team IDs, scores, dateTime, field location
 
 ## Season Management
 
 Each season uses a year-specific registration flag (e.g., `registered2026`). To prepare for a new season:
 
-1. Add a new `registeredYYYY` flag check in `Home.js`, `Register.js`, `Login.js`, `Signup.js`, `Settings.js`, and `UpdateProfile.js`
-2. Update countdown target date and key dates in `Home.js`
-3. Update game info text in `Register.js`
-4. Create a new league document in Firestore (e.g., "Watermelon Cup 2027")
+1. Add a new `registeredYYYY: false` flag in `functions/index.js` (Cloud Function auth trigger) and redeploy
+2. Update the `registeredYYYY` checks in `Register.js`, `Login.js`, `Signup.js`, `Settings.js`, and `UpdateProfile.js`
+3. Update countdown target date and key dates in `Home.js`
+4. Update game info text in `Register.js`
+5. Create a new league document in Firestore (e.g., "Watermelon Cup 2027")
 
 ## Contributing
 
