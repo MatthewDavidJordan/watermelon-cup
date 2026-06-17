@@ -51,16 +51,16 @@ public class UserController {
                 if (userInfo.getUid() != null && !userInfo.getUid().isEmpty()) {
                     userDoc = FirestoreClient.getFirestore(firebaseApp)
                         .collection("users")
-                        .document(userInfo.getUid())
+                        .document(java.util.Objects.requireNonNull(userInfo.getUid()))
                         .get()
                         .get();
                 }
                 
                 // If not found by UID, try by email
-                if (userDoc == null || !userDoc.exists()) {
+                if ((userDoc == null || !userDoc.exists()) && userInfo.getEmail() != null) {
                     userDoc = FirestoreClient.getFirestore(firebaseApp)
                         .collection("users")
-                        .document(userInfo.getEmail())
+                        .document(java.util.Objects.requireNonNull(userInfo.getEmail()))
                         .get()
                         .get();
                 }

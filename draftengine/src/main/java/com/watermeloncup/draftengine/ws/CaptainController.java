@@ -76,7 +76,7 @@ public class CaptainController {
                 // Get user data from Firestore using the UID
                 DocumentSnapshot userDoc = FirestoreClient.getFirestore(firebaseApp)
                     .collection("users")
-                    .document(userInfo.getUid())
+                    .document(java.util.Objects.requireNonNull(userInfo.getUid()))
                     .get()
                     .get();
                 
