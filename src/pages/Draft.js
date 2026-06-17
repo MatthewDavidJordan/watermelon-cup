@@ -76,6 +76,7 @@ export function Draft() {
   const [snakeDraftEnabled, setSnakeDraftEnabled] = useState(false);
   const [draftOrderMode, setDraftOrderMode] = useState('random'); // 'random' or 'custom'
   const [customDraftOrder, setCustomDraftOrder] = useState([]); // array of captain userIds in order
+  // eslint-disable-next-line no-unused-vars
   const [draftConfig, setDraftConfig] = useState(null); // config received from server
 
   // Filters State
