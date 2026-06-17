@@ -72,6 +72,12 @@ export function Draft() {
   const [makingPick, setMakingPick] = useState(false); // For pick in progress
   const [autoDraftEnabled, setAutoDraftEnabled] = useState(false); // For autodraft toggle - off by default
 
+  // Snake draft and draft order state
+  const [snakeDraftEnabled, setSnakeDraftEnabled] = useState(false);
+  const [draftOrderMode, setDraftOrderMode] = useState('random'); // 'random' or 'custom'
+  const [customDraftOrder, setCustomDraftOrder] = useState([]); // array of captain userIds in order
+  const [draftConfig, setDraftConfig] = useState(null); // config received from server
+
   // Filters State
   const [filterOptions, setFilterOptions] = useState({ positions: POSITION_DISPLAY_OPTIONS, feet: [] });
   const [selectedFilters, setSelectedFilters] = useState({
@@ -367,8 +373,10 @@ export function Draft() {
     addMessage('Connecting to WebSocket server...');
 
     // Create a new STOMP client with improved reliability
+    // Use environment variable for draft server URL, fallback to production
+    const draftServerUrl = process.env.REACT_APP_DRAFT_SERVER_URL || 'https://draftengine.watermeloncup.com';
     const client = new Client({
-      webSocketFactory: () => new SockJS('https://draftengine.watermeloncup.com/draft-ws'),
+      webSocketFactory: () => new SockJS(`${draftServerUrl}/draft-ws`),
       debug: str => {
         // Log all important connection-related messages
         if (str.includes('Connected') || str.includes('Error') || str.includes('Lost') ||
@@ -487,6 +495,22 @@ export function Draft() {
         } else {
           addMessage(`Captain registration failed: ${response.message}`);
         }
+      });
+
+      // Subscribe to draft config updates (snake draft, draft order)
+      client.subscribe('/topic/draft-config', (message) => {
+        const payload = JSON.parse(message.body);
+        setDraftConfig(payload);
+        if (payload.snakeDraft !== undefined) {
+          setSnakeDraftEnabled(payload.snakeDraft);
+        }
+        if (payload.draftOrder !== undefined && payload.draftOrder !== null) {
+          setCustomDraftOrder(payload.draftOrder);
+          setDraftOrderMode('custom');
+        } else if (payload.draftOrder === null) {
+          setDraftOrderMode('random');
+        }
+        addMessage(`Draft config updated: snake=${payload.snakeDraft}, order=${payload.draftOrder ? 'custom' : 'random'}`);
       });
 
       // Send user authentication information to the server
@@ -675,6 +699,46 @@ export function Draft() {
       addMessage(`Autodraft ${newState ? 'enabled' : 'disabled'}`);
     }
   }, [addMessage, currentUser, autoDraftEnabled]);
+
+  // Toggle snake draft mode (before draft starts)
+  const toggleSnakeDraft = React.useCallback(() => {
+    if (stompClient.current && stompClient.current.connected) {
+      const newState = !snakeDraftEnabled;
+      stompClient.current.publish({
+        destination: '/app/set-snake-draft',
+        body: JSON.stringify({
+          snakeDraft: newState
+        }),
+      });
+      addMessage(`Snake draft ${newState ? 'enabled' : 'disabled'}`);
+    }
+  }, [addMessage, snakeDraftEnabled]);
+
+  // Set draft order to random
+  const randomizeDraftOrder = React.useCallback(() => {
+    if (stompClient.current && stompClient.current.connected) {
+      stompClient.current.publish({
+        destination: '/app/set-draft-order',
+        body: JSON.stringify({
+          randomize: true
+        }),
+      });
+      addMessage('Draft order set to random');
+    }
+  }, [addMessage]);
+
+  // Set custom draft order (array of captain user IDs)
+  const setCustomOrder = React.useCallback((orderArray) => {
+    if (stompClient.current && stompClient.current.connected) {
+      stompClient.current.publish({
+        destination: '/app/set-draft-order',
+        body: JSON.stringify({
+          draftOrder: orderArray
+        }),
+      });
+      addMessage('Custom draft order submitted');
+    }
+  }, [addMessage]);
 
   // Function to make a draft pick
   const makePick = React.useCallback(() => {
@@ -1054,6 +1118,75 @@ export function Draft() {
                 <h3>Draft Not Started Yet</h3>
                 <p>The draft will start once all {maxCaptains} team captains have joined.</p>
                 <p>Current status: {captainCount}/{maxCaptains} captains registered</p>
+
+                {/* Draft Configuration Section - only shown before draft starts */}
+                <div className="draft-config-section">
+                  <h4 className="draft-config-title">Draft Settings</h4>
+                  
+                  {/* Snake Draft Toggle */}
+                  <div className="draft-config-row">
+                    <ToggleSwitch
+                      isOn={snakeDraftEnabled}
+                      handleToggle={toggleSnakeDraft}
+                      label="Snake Draft"
+                      disabled={!connected}
+                    />
+                    <span className="draft-config-description">
+                      {snakeDraftEnabled 
+                        ? 'Snake: order reverses each round (1→2→3→...→3→2→1)' 
+                        : 'Round-robin: same order every round (1→2→3→...→1→2→3)'}
+                    </span>
+                  </div>
+
+                  {/* Draft Order Controls */}
+                  <div className="draft-config-row">
+                    <span className="draft-config-label">Draft Order:</span>
+                    <div className="draft-order-controls">
+                      <button
+                        className={`control-button ${draftOrderMode === 'random' ? 'button-active' : ''}`}
+                        onClick={randomizeDraftOrder}
+                        disabled={!connected}
+                      >
+                        Randomize
+                      </button>
+                      <button
+                        className={`control-button ${draftOrderMode === 'custom' ? 'button-active' : ''}`}
+                        onClick={() => {
+                          // Set custom order based on current captains list order
+                          if (captains.length > 0) {
+                            setCustomOrder(captains.map(c => c.userId));
+                          }
+                        }}
+                        disabled={!connected || captains.length === 0}
+                      >
+                        Use Current Order
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Show current draft order if custom */}
+                  {draftOrderMode === 'custom' && customDraftOrder.length > 0 && (
+                    <div className="draft-config-row draft-order-display">
+                      <span className="draft-config-label">Current Order:</span>
+                      <div className="draft-order-list">
+                        {customDraftOrder.map((captainId, index) => {
+                          const captain = captains.find(c => c.userId === captainId);
+                          return (
+                            <span key={captainId} className="draft-order-item">
+                              {index + 1}. {captain ? `${captain.firstName} ${captain.lastName}` : captainId}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {draftOrderMode === 'random' && (
+                    <div className="draft-config-row">
+                      <span className="draft-config-info">Order will be randomized when draft starts.</span>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <p>No draft state received yet</p>

@@ -68,6 +68,11 @@ public class Player {
     private boolean registered2025;
     
     /**
+     * Registration flag for 2026 season
+     */
+    private boolean registered2026;
+    
+    /**
      * Default constructor
      */
     public Player() {
@@ -78,7 +83,7 @@ public class Player {
      */
     public Player(String id, String firstName, String lastName, Object position, String clubTeam, 
                  String footPref, String graduationYear, String email, String phone, String nickname,
-                 boolean registered2024, boolean registered2025) {
+                 boolean registered2025, boolean registered2026) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -89,8 +94,8 @@ public class Player {
         this.email = email;
         this.phone = phone;
         this.nickname = nickname;
-        this.registered2024 = registered2024;
         this.registered2025 = registered2025;
+        this.registered2026 = registered2026;
     }
     
     // Getters and setters
@@ -212,6 +217,14 @@ public class Player {
     
     public void setRegistered2025(boolean registered2025) {
         this.registered2025 = registered2025;
+    }
+    
+    public boolean isRegistered2026() {
+        return registered2026;
+    }
+    
+    public void setRegistered2026(boolean registered2026) {
+        this.registered2026 = registered2026;
     }
 
     /**

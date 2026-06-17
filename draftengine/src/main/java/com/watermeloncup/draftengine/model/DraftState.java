@@ -17,5 +17,9 @@ public record DraftState(
     Player lastPick,
     boolean draftStarted,
     List<Captain> captains,
-    Map<String, Boolean> autoDraftPreferences
+    Map<String, Boolean> autoDraftPreferences,
+    // Snake draft settings
+    boolean snakeDraft,
+    List<String> draftOrder,
+    int currentRound
 ) {}

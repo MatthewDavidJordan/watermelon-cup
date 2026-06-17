@@ -33,6 +33,10 @@ public class DraftService {
     
     private boolean draftCompleted = false;
     private String exportedSheetUrl = null;
+    
+    // Snake draft and draft order configuration (set before draft starts)
+    private boolean snakeDraftEnabled = false;
+    private List<String> customDraftOrder = null; // null = randomize
 
     @Autowired
     public DraftService(SimpMessagingTemplate broker, @Autowired(required = false) FirebaseApp fb, GoogleSheetsService googleSheetsService) {
@@ -56,7 +60,10 @@ public class DraftService {
                 null, // No last pick
                 false, // Draft not started
                 new ArrayList<>(), // No captains
-                new HashMap<>() // No autodraft preferences
+                new HashMap<>(), // No autodraft preferences
+                false, // Snake draft off by default
+                new ArrayList<>(), // No draft order yet
+                0 // Round 0 (not started)
         );
     }
 
@@ -90,21 +97,27 @@ public class DraftService {
         // Check if the draft is complete after this pick
         boolean isDraftComplete = checkIfDraftComplete(updatedPool, updatedTeams);
 
+        // Calculate the new round and next captains based on total picks made
+        int totalPicksMade = updatedTeams.values().stream().mapToInt(List::size).sum();
+        int numCaptains = state.draftOrder().size();
+        int newRound = numCaptains > 0 ? (totalPicksMade / numCaptains) : state.currentRound();
+
         // update state with next captain and reset timer
         Instant newExpiry = Instant.now().plusSeconds(180); // 3 minutes to pick
 
-        // Get the next captain ID
-        String nextCaptainId = state.nextCaptainId();
-        String newNextCaptainId = determineNextCaptain(nextCaptainId, updatedTeams.keySet());
+        // Compute current and next captain purely from totalPicksMade (position-based)
+        // totalPicksMade already reflects this pick, so it points to the NEXT pick slot
+        String newCurrentCaptainId = determineNextCaptain(null, state.draftOrder(), totalPicksMade, state.snakeDraft());
+        String newNextCaptainId = determineNextCaptain(null, state.draftOrder(), totalPicksMade + 1, state.snakeDraft());
 
         // Find the captain objects to get their names
-        String nextCaptainName = getCaptainName(nextCaptainId, state.captains());
+        String newCurrentCaptainName = getCaptainName(newCurrentCaptainId, state.captains());
         String newNextCaptainName = getCaptainName(newNextCaptainId, state.captains());
 
         state = new DraftState(
-                nextCaptainId,
+                newCurrentCaptainId,
                 newNextCaptainId,
-                nextCaptainName,
+                newCurrentCaptainName,
                 newNextCaptainName,
                 updatedPool,
                 updatedTeams,
@@ -112,7 +125,10 @@ public class DraftService {
                 selectedPlayer,
                 state.draftStarted(),
                 state.captains(),
-                state.autoDraftPreferences());
+                state.autoDraftPreferences(),
+                state.snakeDraft(),
+                state.draftOrder(),
+                newRound);
 
         // broadcast updated state
         broker.convertAndSend("/topic/draft", state);
@@ -168,7 +184,10 @@ public class DraftService {
                 state.lastPick(),
                 state.draftStarted(),
                 state.captains(),
-                newPreferences);
+                newPreferences,
+                state.snakeDraft(),
+                state.draftOrder(),
+                state.currentRound());
 
         // Broadcast updated state
         broker.convertAndSend("/topic/draft", state);
@@ -208,87 +227,62 @@ public class DraftService {
     }
 
     private void autoSkip() {
-        // Auto-select a random player when time expires
+        // Auto-select the first available player when time expires
         if (state.availablePool().isEmpty()) {
             return; // Draft is complete
         }
 
-        // Select first available player
+        String currentCaptainId = state.currentCaptainId();
         Player autoSelectedPlayer = state.availablePool().get(0);
 
-        // Remove from pool
-        List<Player> updatedPool = new ArrayList<>(state.availablePool());
-        updatedPool.remove(0);
+        logger.info("Auto-skipping for captain {}: picking {}", currentCaptainId,
+                autoSelectedPlayer.getFirstName() + " " + autoSelectedPlayer.getLastName());
 
-        // Add to team
-        Map<String, List<Player>> updatedTeams = new HashMap<>(state.teams());
-        String currentCaptainId = state.currentCaptainId();
-        List<Player> captainTeam = new ArrayList<>(updatedTeams.getOrDefault(currentCaptainId, new ArrayList<>()));
-        captainTeam.add(autoSelectedPlayer);
-        updatedTeams.put(currentCaptainId, captainTeam);
-
-        // Check if the draft is complete after this auto-pick
-        boolean isDraftComplete = checkIfDraftComplete(updatedPool, updatedTeams);
-
-        // Update state with next captain and reset timer
-        Instant newExpiry = Instant.now().plusSeconds(180); // 3 minutes to pick
-
-        // Get the next captain ID
-        String nextCaptainId = state.nextCaptainId();
-        String newNextCaptainId = determineNextCaptain(nextCaptainId, updatedTeams.keySet());
-
-        // Find the captain objects to get their names
-        String nextCaptainName = getCaptainName(nextCaptainId, state.captains());
-        String newNextCaptainName = getCaptainName(newNextCaptainId, state.captains());
-
-        state = new DraftState(
-                nextCaptainId,
-                newNextCaptainId,
-                nextCaptainName,
-                newNextCaptainName,
-                updatedPool,
-                updatedTeams,
-                newExpiry,
-                autoSelectedPlayer,
-                state.draftStarted(),
-                state.captains(),
-                state.autoDraftPreferences());
-
-        // Broadcast updated state
-        broker.convertAndSend("/topic/draft", state);
-        
-        // If draft is complete, export teams to Google Sheets
-        if (isDraftComplete && !draftCompleted) {
-            exportTeamsToGoogleSheets();
+        try {
+            makePick(currentCaptainId, autoSelectedPlayer.getId());
+        } catch (Exception e) {
+            logger.error("Error during auto-skip pick: {}", e.getMessage());
         }
     }
 
-    private String determineNextCaptain(String currentCaptain, Iterable<String> captainIds) {
-        // Get a list of captain IDs
-        List<String> captainIdList = new ArrayList<>();
-        captainIds.forEach(captainIdList::add);
-
-        // If there are no captains, return the current one
-        if (captainIdList.isEmpty()) {
-            return currentCaptain;
+    /**
+     * Determine which captain should pick at a given pick slot, supporting both
+     * round-robin and snake draft styles.
+     *
+     * In snake draft: Round 0 goes 1→2→3→4→5→6, Round 1 goes 6→5→4→3→2→1, etc.
+     * In round-robin: Always goes 1→2→3→4→5→6→1→2→...
+     *
+     * @param fallback fallback captain ID if draftOrder is empty (should not happen in practice)
+     * @param draftOrder the ordered list of captain IDs
+     * @param pickSlot the 0-indexed pick slot (e.g. totalPicksMade = slot of the next pick)
+     * @param isSnakeDraft whether snake draft mode is enabled
+     * @return the captain ID who picks at this slot
+     */
+    private String determineNextCaptain(String fallback, List<String> draftOrder, int pickSlot, boolean isSnakeDraft) {
+        if (draftOrder == null || draftOrder.isEmpty()) {
+            return fallback;
         }
 
-        // Find the index of the current captain
-        int currentIndex = -1;
-        for (int i = 0; i < captainIdList.size(); i++) {
-            if (captainIdList.get(i).equals(currentCaptain)) {
-                currentIndex = i;
-                break;
-            }
+        int numCaptains = draftOrder.size();
+
+        if (!isSnakeDraft) {
+            // Simple round-robin
+            int positionInRound = pickSlot % numCaptains;
+            return draftOrder.get(positionInRound);
         }
 
-        // If the current captain is not found, return the first captain
-        if (currentIndex == -1) {
-            return captainIdList.get(0);
-        }
+        // Snake draft logic:
+        // Determine which round we're in and position within that round
+        int round = pickSlot / numCaptains;
+        int positionInRound = pickSlot % numCaptains;
 
-        // Return the next captain in the list, wrapping around if necessary
-        return captainIdList.get((currentIndex + 1) % captainIdList.size());
+        if (round % 2 == 0) {
+            // Even rounds (0, 2, 4...): forward order
+            return draftOrder.get(positionInRound);
+        } else {
+            // Odd rounds (1, 3, 5...): reverse order
+            return draftOrder.get(numCaptains - 1 - positionInRound);
+        }
     }
 
     /**
@@ -343,19 +337,38 @@ public class DraftService {
             teams.put(captain.getUserId(), new ArrayList<>());
         }
 
-        // Randomize the captain order for fairness
-        List<Captain> shuffledCaptains = new ArrayList<>(captains);
-        Collections.shuffle(shuffledCaptains);
+        // Determine draft order: use custom order if set, otherwise randomize
+        List<String> finalDraftOrder;
+        if (customDraftOrder != null && customDraftOrder.size() == captains.size()) {
+            // Validate that all IDs in customDraftOrder are valid captain IDs
+            List<String> captainUserIds = captains.stream().map(Captain::getUserId).toList();
+            boolean allValid = customDraftOrder.stream().allMatch(captainUserIds::contains);
+            if (allValid) {
+                finalDraftOrder = new ArrayList<>(customDraftOrder);
+                logger.info("Using custom draft order: {}", finalDraftOrder);
+            } else {
+                logger.warn("Custom draft order contains invalid captain IDs, falling back to random");
+                List<Captain> shuffledCaptains = new ArrayList<>(captains);
+                Collections.shuffle(shuffledCaptains);
+                finalDraftOrder = shuffledCaptains.stream().map(Captain::getUserId).toList();
+            }
+        } else {
+            // Randomize the captain order for fairness
+            List<Captain> shuffledCaptains = new ArrayList<>(captains);
+            Collections.shuffle(shuffledCaptains);
+            finalDraftOrder = shuffledCaptains.stream().map(Captain::getUserId).toList();
+            logger.info("Randomized draft order");
+        }
 
-        // Select the first and second captains randomly
-        String firstCaptainId = shuffledCaptains.get(0).getUserId();
-        String secondCaptainId = shuffledCaptains.get(1).getUserId();
+        // Select the first and second captains from the draft order
+        String firstCaptainId = finalDraftOrder.get(0);
+        String secondCaptainId = finalDraftOrder.get(1);
 
         // Get captain names for display
-        String firstCaptainName = shuffledCaptains.get(0).getFirstName() + " " + shuffledCaptains.get(0).getLastName();
-        String secondCaptainName = shuffledCaptains.get(1).getFirstName() + " " + shuffledCaptains.get(1).getLastName();
+        String firstCaptainName = getCaptainName(firstCaptainId, captains);
+        String secondCaptainName = getCaptainName(secondCaptainId, captains);
 
-        logger.info("Randomly selected first captain: {} and second captain: {}", firstCaptainName, secondCaptainName);
+        logger.info("Draft order - first captain: {}, second captain: {}, snake: {}", firstCaptainName, secondCaptainName, snakeDraftEnabled);
 
         // Create the new draft state with only the current 6 captains
         state = new DraftState(
@@ -369,7 +382,10 @@ public class DraftService {
                 null, // No last pick yet
                 true, // Draft is started
                 captains, // List of captains (exactly 6)
-                new HashMap<>() // Initialize empty autodraft preferences
+                new HashMap<>(), // Initialize empty autodraft preferences
+                snakeDraftEnabled, // Snake draft setting
+                finalDraftOrder, // The draft order
+                0 // Starting at round 0
         );
 
         // Broadcast the updated state
@@ -471,6 +487,72 @@ public class DraftService {
         return draftCompleted;
     }
     
+    /**
+     * Set whether snake draft mode is enabled.
+     * Must be called before the draft starts.
+     * 
+     * @param enabled true to enable snake draft, false for round-robin
+     * @return true if the setting was applied, false if draft already started
+     */
+    public synchronized boolean setSnakeDraft(boolean enabled) {
+        if (state.draftStarted()) {
+            logger.warn("Cannot change snake draft setting after draft has started");
+            return false;
+        }
+        this.snakeDraftEnabled = enabled;
+        logger.info("Snake draft mode set to: {}", enabled);
+        
+        // Broadcast updated pre-draft config
+        broadcastDraftConfig();
+        return true;
+    }
+    
+    /**
+     * Set a custom draft order. Pass null to use random order.
+     * Must be called before the draft starts.
+     * 
+     * @param order list of captain user IDs in desired pick order, or null for random
+     * @return true if the setting was applied, false if draft already started
+     */
+    public synchronized boolean setDraftOrder(List<String> order) {
+        if (state.draftStarted()) {
+            logger.warn("Cannot change draft order after draft has started");
+            return false;
+        }
+        this.customDraftOrder = order;
+        logger.info("Custom draft order set to: {}", order);
+        
+        // Broadcast updated pre-draft config
+        broadcastDraftConfig();
+        return true;
+    }
+    
+    /**
+     * Get whether snake draft is enabled
+     */
+    public boolean isSnakeDraftEnabled() {
+        return snakeDraftEnabled;
+    }
+    
+    /**
+     * Get the custom draft order (null means random)
+     */
+    public List<String> getCustomDraftOrder() {
+        return customDraftOrder;
+    }
+    
+    /**
+     * Broadcast the current draft configuration to all connected clients.
+     * This is used before the draft starts so clients can see the settings.
+     */
+    private void broadcastDraftConfig() {
+        Map<String, Object> config = new HashMap<>();
+        config.put("snakeDraft", snakeDraftEnabled);
+        config.put("draftOrder", customDraftOrder);
+        config.put("draftStarted", state.draftStarted());
+        broker.convertAndSend("/topic/draft-config", config);
+    }
+    
     private List<Player> loadPlayersFromFirebase() {
         List<Player> players = new ArrayList<>();
 
@@ -482,16 +564,14 @@ public class DraftService {
 
                 // Get Firestore instance and use it directly
                 FirestoreClient.getFirestore(firebaseApp).collection("users")
-                        .whereEqualTo("registered2025", true)
+                        .whereEqualTo("registered2026", true)
                         .get()
                         .get() // This blocks until the query completes
                         .getDocuments()
                         .forEach(doc -> {
                             try {
                                 logger.debug("Processing user document: " + doc.getId());
-                                // Get the registered2025 value, defaulting to false if null
-                                Boolean registered2025 = doc.getBoolean("registered2025");
-                                Boolean isRegistered2025 = (registered2025 != null) ? registered2025 : false;
+                                // We already filtered by registered2026=true in the query
 
                                 // Get position data - could be a string or an array
                                 Object positionData = null;
@@ -514,9 +594,8 @@ public class DraftService {
                                         doc.getString("email"),
                                         doc.getString("phone"),
                                         doc.getString("nickname"),
-                                        doc.getBoolean("registered2024") != null ? doc.getBoolean("registered2024")
-                                                : false,
-                                        // set registered2025 to true since we're loading only players with that value
+                                        Boolean.TRUE.equals(doc.getBoolean("registered2025")),
+                                        // set registered2026 to true since we're loading only players with that value
                                         true);
                                 players.add(player);
                                 logger.debug("Loaded player: " + player.getFullName());
