@@ -34,17 +34,18 @@ const RARITY_SORT_MAP = {
 };
 
 // Helper function to determine player rarity string based on graduation year
+// Uses a peak-window system: players peak around senior year + a few years post-grad
 const getPlayerRarityByGradYear = (graduationYear) => {
-  if (!graduationYear) return "Bronze"; // Default for missing grad year, or handle as needed
+  if (!graduationYear) return "Bronze"; // Default for missing grad year
   const currentYear = new Date().getFullYear();
-  const yearsUntilGraduation = graduationYear - currentYear;
+  const yearsAfterGrad = currentYear - graduationYear;
 
-  if (yearsUntilGraduation >= 2) {
-    return "Bronze"; // Younger players (e.g., Freshmen/Sophomores if current year is 2025, grad 2027+)
-  } else if (yearsUntilGraduation === 1) {
-    return "Silver"; // Next year's graduates (e.g., Juniors if current year is 2025, grad 2026)
+  if (yearsAfterGrad >= 0 && yearsAfterGrad <= 4) {
+    return "Gold";   // Peak window: senior year through 4 years post-grad
+  } else if (yearsAfterGrad === -1 || (yearsAfterGrad >= 5 && yearsAfterGrad <= 6)) {
+    return "Silver"; // Juniors approaching peak, or alumni a few years past peak
   } else {
-    return "Gold";   // Current year graduates or older (e.g., Seniors if current year is 2025, grad 2025 or earlier)
+    return "Bronze";  // Underclassmen or alumni well past peak
   }
 };
 
@@ -1101,7 +1102,7 @@ export function Draft() {
                   <span className="state-value timer-value">
                     {new Date(draftState.pickExpiresAt).toLocaleTimeString()}
                     {timeLeft && (
-                      <span className={`timer-countdown ${timeLeft === 'Expired' ? 'expired' : ''}`}>
+                      <span className={`timer-countdown ${timeLeft === 'Expired' ? 'expired' : ''} ${timeLeft !== 'Expired' && timeLeft && parseInt(timeLeft.split(':')[0]) < 1 ? 'warning' : ''}`}>
                         {timeLeft === 'Expired' ? '(Expired)' : `(${timeLeft} remaining)`}
                       </span>
                     )}
@@ -1335,6 +1336,21 @@ export function Draft() {
           )}
 
           <div className="section-content section-content-large-padding">
+            <div className="tier-legend">
+              <span className="tier-legend-title">Tiers:</span>
+              <span className="tier-legend-item">
+                <span className="tier-swatch tier-swatch-gold"></span>
+                Gold — Senior year + 4 yrs post-grad
+              </span>
+              <span className="tier-legend-item">
+                <span className="tier-swatch tier-swatch-silver"></span>
+                Silver — Juniors &amp; 5-6 yrs post-grad
+              </span>
+              <span className="tier-legend-item">
+                <span className="tier-swatch tier-swatch-bronze"></span>
+                Bronze — Underclassmen &amp; 7+ yrs post-grad
+              </span>
+            </div>
 
             {draftState && draftState.availablePool && draftState.availablePool.length > 0 ? (
               filteredAvailablePlayers.length > 0 ? (

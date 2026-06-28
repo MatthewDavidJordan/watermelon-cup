@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react"
 import "./countdown-timer.css"
 
-export function CountdownTimer({ targetDate }) {
+export function CountdownTimer({ targetDate, onExpire }) {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0,
   })
+  const [expired, setExpired] = useState(false)
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -22,6 +23,9 @@ export function CountdownTimer({ targetDate }) {
           minutes: Math.floor((difference / 1000 / 60) % 60),
           seconds: Math.floor((difference / 1000) % 60),
         })
+      } else if (!expired) {
+        setExpired(true)
+        if (onExpire) onExpire()
       }
     }
 
@@ -29,7 +33,9 @@ export function CountdownTimer({ targetDate }) {
     const timer = setInterval(calculateTimeLeft, 1000)
 
     return () => clearInterval(timer)
-  }, [targetDate])
+  }, [targetDate, expired, onExpire])
+
+  if (expired) return null
 
   return (
     <div className="countdown-timer">

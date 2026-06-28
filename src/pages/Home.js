@@ -18,6 +18,7 @@ export const Home = () => {
 
   const [registered, setRegistered] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [timerExpired, setTimerExpired] = useState(false);
 
   useEffect(() => {
       const checkUserRegistered = async () => {
@@ -57,7 +58,12 @@ export const Home = () => {
         <Carousel />
         <div className="hero-content">
           <h1>Watermelon Cup 2026</h1>
-          <CountdownTimer targetDate="2026-06-15T18:00:00-04:00" />
+          <CountdownTimer targetDate="2026-06-15T18:00:00-04:00" onExpire={() => setTimerExpired(true)} />
+          {timerExpired && (
+            <Link to="/teams" className="btn-register" style={{ marginTop: '8rem', padding: '1rem 2.5rem', borderRadius: '4px', fontSize: '1.1rem', letterSpacing: '0.05em', backgroundColor: '#15803d' }}>
+              View Teams
+            </Link>
+          )}
           
           <div className="hero-content-container">
             {(!userLoggedIn || !registered) ? (

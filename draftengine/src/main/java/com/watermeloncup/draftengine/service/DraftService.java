@@ -103,7 +103,7 @@ public class DraftService {
         int newRound = numCaptains > 0 ? (totalPicksMade / numCaptains) : state.currentRound();
 
         // update state with next captain and reset timer
-        Instant newExpiry = Instant.now().plusSeconds(180); // 3 minutes to pick
+        Instant newExpiry = Instant.now().plusSeconds(300); // 5 minutes to pick
 
         // Compute current and next captain purely from totalPicksMade (position-based)
         // totalPicksMade already reflects this pick, so it points to the NEXT pick slot
@@ -200,7 +200,9 @@ public class DraftService {
     }
 
     /**
-     * Make an automatic pick for a captain with autodraft enabled
+     * Make an automatic pick for a captain with autodraft enabled.
+     * Picks the best available player by tier (Gold > Silver > Bronze),
+     * then by proximity to peak (closest to senior year / 0 yearsAfterGrad).
      * 
      * @param captainId the captain's ID
      */
@@ -212,17 +214,53 @@ public class DraftService {
             return;
         }
 
-        // Select the first available player
-        Player player = state.availablePool().get(0);
+        // Select the best available player by tier, then by seniority
+        int currentYear = java.time.Year.now().getValue();
+        Player bestPlayer = state.availablePool().stream()
+                .max(java.util.Comparator
+                        .comparingInt((Player p) -> getPlayerTierScore(p, currentYear))
+                        .thenComparingInt((Player p) -> -Math.abs(getYearsAfterGrad(p, currentYear))))
+                .orElse(state.availablePool().get(0));
 
-        logger.info("Making autodraft pick for captain {}: {}", captainId,
-                player.getFirstName() + " " + player.getLastName());
+        logger.info("Making autodraft pick for captain {}: {} (tier={}, yearsAfterGrad={})", captainId,
+                bestPlayer.getFirstName() + " " + bestPlayer.getLastName(),
+                getPlayerTierScore(bestPlayer, currentYear),
+                getYearsAfterGrad(bestPlayer, currentYear));
 
         try {
             // Make the pick
-            makePick(captainId, player.getId());
+            makePick(captainId, bestPlayer.getId());
         } catch (Exception e) {
             logger.error("Error making autodraft pick: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Get years after graduation for a player. Positive = post-grad, negative = pre-grad.
+     */
+    private int getYearsAfterGrad(Player player, int currentYear) {
+        try {
+            int gradYear = Integer.parseInt(player.getGraduationYear());
+            return currentYear - gradYear;
+        } catch (NumberFormatException | NullPointerException e) {
+            return 99; // Unknown grad year treated as very far from peak
+        }
+    }
+
+    /**
+     * Get a tier score for a player (higher = better tier).
+     * Gold = 3 (senior year through 4 years post-grad)
+     * Silver = 2 (juniors or 5-6 years post-grad)
+     * Bronze = 1 (underclassmen or 7+ years post-grad)
+     */
+    private int getPlayerTierScore(Player player, int currentYear) {
+        int yearsAfterGrad = getYearsAfterGrad(player, currentYear);
+        if (yearsAfterGrad >= 0 && yearsAfterGrad <= 4) {
+            return 3; // Gold
+        } else if (yearsAfterGrad == -1 || (yearsAfterGrad >= 5 && yearsAfterGrad <= 6)) {
+            return 2; // Silver
+        } else {
+            return 1; // Bronze
         }
     }
 
@@ -378,7 +416,7 @@ public class DraftService {
                 secondCaptainName, // Next captain name
                 players, // Available player pool
                 teams, // Teams (empty initially)
-                Instant.now().plusSeconds(180), // 3 minutes for first pick
+                Instant.now().plusSeconds(300), // 5 minutes for first pick
                 null, // No last pick yet
                 true, // Draft is started
                 captains, // List of captains (exactly 6)

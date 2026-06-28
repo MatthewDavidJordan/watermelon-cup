@@ -8,14 +8,17 @@ const PlayerCard = ({ player, isSelected, onSelect }) => {
   };
 
   // Helper function to determine card type based on graduation year
+  // Uses a peak-window system: players peak around senior year + a few years post-grad
   const getCardType = (graduationYear) => {
     const currentYear = new Date().getFullYear();
-    if (graduationYear - currentYear >= 2) {
-      return "fifa-card-bronze"; // Younger players (freshmen/sophomores)
-    } else if (graduationYear - currentYear === 1) {
-      return "fifa-card-silver"; // Juniors
+    const yearsAfterGrad = currentYear - graduationYear;
+
+    if (yearsAfterGrad >= 0 && yearsAfterGrad <= 4) {
+      return "fifa-card-gold"; // Peak window: senior year through 4 years post-grad
+    } else if (yearsAfterGrad === -1 || (yearsAfterGrad >= 5 && yearsAfterGrad <= 6)) {
+      return "fifa-card-silver"; // Juniors approaching peak, or alumni a few years past peak
     } else {
-      return "fifa-card-gold"; // Seniors or alumni (older players)
+      return "fifa-card-bronze"; // Underclassmen or alumni well past peak
     }
   };
 
