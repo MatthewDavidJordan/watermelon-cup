@@ -167,7 +167,15 @@ export function Draft() {
     // Apply position filters (uses abbreviations)
     if (selectedFilters.positions.size > 0) {
       players = players.filter(p => {
-        const playerPositionsAbbr = (p.positions || (p.position ? [p.position] : [])).map(posFull => POSITION_MAP[posFull] || posFull);
+        // Normalize positions into an array, handling string (comma-separated), array, or missing
+        let rawPositions = p.positions || p.position || [];
+        if (typeof rawPositions === 'string') {
+          rawPositions = rawPositions.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        if (!Array.isArray(rawPositions)) {
+          rawPositions = [rawPositions];
+        }
+        const playerPositionsAbbr = rawPositions.map(posFull => POSITION_MAP[posFull] || posFull);
         return playerPositionsAbbr.some(abbr => selectedFilters.positions.has(abbr));
       });
     }
