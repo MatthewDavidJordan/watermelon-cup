@@ -8,7 +8,7 @@ import '../styles/matches.css';
 import '../styles/upload-scores.css';
 
 // List of authorized emails
-const AUTHORIZED_EMAILS = ['mdj82@georgetown.edu', 'mj1001571@gmail.com', 'gabrielduque1210@icloud.com', 'brendan.m.allen25@gmail.com', 'joshjwhitaker@icloud.com', 'dmhill5000@gmail.com', 'dylanshackelford31@gmail.com', 'gabehellmann43@gmail.com'];
+const AUTHORIZED_EMAILS = ['mj1001571@gmail.com', 'damorejack46@gmail.com', 'nrossoni09@gmail.com', 'thomaspretty02@icloud.com', 'nicoreyna@gmail.com', 'lucas.alarcon.frias@gmail.com', 'adrianrod17455@gmail.com'];
 
 export function UploadScores() {
   const [activeWeek, setActiveWeek] = useState(1);
